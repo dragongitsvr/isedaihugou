@@ -3,15 +3,9 @@ using Photon.Services;
 using Photon.Messages;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using PlayFab.ClientModels;
 using PlayFab;
 using UnityEngine.SceneManagement;
-using UnityEngine;
-using System.Diagnostics;
-using UnityEditor.PackageManager;
 using Assets.Photon.Argencies;
 
 namespace Assets.Services
