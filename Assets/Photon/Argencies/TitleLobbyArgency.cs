@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Assets.Photon.Argencies
+﻿namespace Assets.Photon.Argencies
 {
     /// <summary>
     /// 「タイトル」画面と「ロビー」画面の仲介クラス
