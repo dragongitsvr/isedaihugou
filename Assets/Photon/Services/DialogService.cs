@@ -11,7 +11,9 @@ namespace Photon.Services
         /// <param name="message">メッセージ</param>
         public void OpenOkDialog(string title, string message)
         {
-            EditorUtility.DisplayDialog(title, message, "OK");
+            #if UNITY_EDITOR
+                EditorUtility.DisplayDialog(title, message, "OK");
+            #endif
         }
     }
 }
