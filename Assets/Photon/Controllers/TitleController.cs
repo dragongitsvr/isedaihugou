@@ -45,10 +45,19 @@ public class TitleController : MonoBehaviour
     /// </summary>
     public void BtnLogin_Clicked()
     {
-        // インスタンス
-        TitleService titleService = new();
+        try
+        {
+            // インスタンス
+            TitleService titleService = new();
 
-        titleService.LoginUser(_inpUserId.text);
+            titleService.LoginUser(_inpUserId.text);
+
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.StackTrace);
+        }
+
     }
 
 }
