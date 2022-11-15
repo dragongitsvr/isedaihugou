@@ -1535,7 +1535,7 @@ GameObject:
   - component: {fileID: 1941477168}
   - component: {fileID: 1941477167}
   m_Layer: 5
-  m_Name: LabelUserId
+  m_Name: LblUserId
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
