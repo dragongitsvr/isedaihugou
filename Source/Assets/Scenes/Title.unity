@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 112000000, guid: e60e4fc45bb64f9448ab17d249540408, type: 2}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: 40ef81dfe545c75438065e0e7d113af7, type: 2}
+  m_LightingSettings: {fileID: 0}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -169,7 +169,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 250418782}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: acdabb2d520b0e44c8de3b236ef2cc32, type: 3}
+  m_Script: {fileID: 11500000, guid: f5098750530cc834c8a6e75dbc91482f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _inpUserId: {fileID: 788999126}
@@ -206,7 +206,7 @@ RectTransform:
   m_Children:
   - {fileID: 788999125}
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 12
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -496,7 +496,7 @@ GameObject:
   - component: {fileID: 805499029}
   - component: {fileID: 805499028}
   m_Layer: 5
-  m_Name: LblTitle
+  m_Name: Title
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -515,12 +515,12 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 4
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -100}
-  m_SizeDelta: {x: 1920, y: 200}
+  m_AnchoredPosition: {x: 0, y: -113.52}
+  m_SizeDelta: {x: 1920, y: 227.04}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &805499028
 MonoBehaviour:
@@ -543,8 +543,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 12800000, guid: d1dac2c384e35be4eb5ca452a016bb86, type: 3}
-    m_FontSize: 135
+    m_Font: {fileID: 12800000, guid: 9d306141062c3084097ed26a971fde1b, type: 3}
+    m_FontSize: 140
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 0
@@ -599,7 +599,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.00048446655}
   m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &953129439
@@ -622,7 +622,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 877634c5471014141b375a95f363c602, type: 3}
+  m_Texture: {fileID: 2800000, guid: e7fd03feee1e8cb4abd4fe37eda1e666, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -737,12 +737,12 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 2
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.39166665}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 369, y: -57.640137}
-  m_SizeDelta: {x: 222.98, y: -92.426}
+  m_AnchoredPosition: {x: 369, y: -64.89569}
+  m_SizeDelta: {x: 222.98, y: -93.938}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1287817826
 MonoBehaviour:
@@ -820,7 +820,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b9a85773125be754d85083efd278f7f5, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 79a6b781952b430499d92769b28fb6a9, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -850,7 +850,7 @@ GameObject:
   - component: {fileID: 1392513157}
   - component: {fileID: 1392513156}
   m_Layer: 5
-  m_Name: ImgHeartTen
+  m_Name: HeartTen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -869,7 +869,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 9
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -20.557}
   m_AnchorMin: {x: 0.34539583, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -896,7 +896,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 01d2145f839baed4eb352226a33c8336, type: 3}
+  m_Texture: {fileID: 2800000, guid: a0fa5909804d3584e94a6c059da7b808, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -943,12 +943,12 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 3
+  m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.39166665}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 84, y: -57.640137}
-  m_SizeDelta: {x: 150.3823, y: -92.426}
+  m_AnchoredPosition: {x: 84, y: -64.89569}
+  m_SizeDelta: {x: 150.3823, y: -93.938}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1401782191
 MonoBehaviour:
@@ -1026,7 +1026,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: c19b60544969c6047aebe8374e33e17b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 57d54fc29db4b614c99398326d4ec306, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1056,7 +1056,7 @@ GameObject:
   - component: {fileID: 1471827744}
   - component: {fileID: 1471827743}
   m_Layer: 5
-  m_Name: ImgHeartNine
+  m_Name: HeartNine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1075,7 +1075,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 8
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0.92}
   m_AnchorMin: {x: 0.34539583, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1102,7 +1102,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 00f0b3f1e7a8ddd4a9f8e2aa516f76c8, type: 3}
+  m_Texture: {fileID: 2800000, guid: 62b25292626596542b8ec6a54c499366, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -1129,7 +1129,7 @@ GameObject:
   - component: {fileID: 1510941500}
   - component: {fileID: 1510941499}
   m_Layer: 5
-  m_Name: ImgDaiyaSeven
+  m_Name: DaiyaSeven
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1148,7 +1148,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 6
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 21.913}
   m_AnchorMin: {x: 0.34539583, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1175,7 +1175,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: a81c32da006c73d4e87cd913f8dc7213, type: 3}
+  m_Texture: {fileID: 2800000, guid: 6bd00bfd3cd837b48baaa94501207b1d, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -1202,7 +1202,7 @@ GameObject:
   - component: {fileID: 1523393692}
   - component: {fileID: 1523393691}
   m_Layer: 5
-  m_Name: ImgDaiyaEight
+  m_Name: DaiyaEight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1221,7 +1221,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 7
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 11.791}
   m_AnchorMin: {x: 0.34539583, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1248,7 +1248,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 2dcf163361fe1ff4085d58ce4b07c699, type: 3}
+  m_Texture: {fileID: 2800000, guid: 469016296a7c3ba4a855598dd0875500, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -1275,7 +1275,7 @@ GameObject:
   - component: {fileID: 1587150742}
   - component: {fileID: 1587150741}
   m_Layer: 5
-  m_Name: BackGroundUserid
+  m_Name: UseridBackGround
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1294,7 +1294,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 1
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1321,7 +1321,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: e09c0fda7b56cdb41a45c90610adf35c, type: 3}
+  m_Texture: {fileID: 2800000, guid: 71c5dce5538f2d44fa227b3fd7864c73, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -1368,18 +1368,18 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 953129438}
-  - {fileID: 1587150740}
-  - {fileID: 1287817825}
-  - {fileID: 1401782190}
   - {fileID: 805499027}
-  - {fileID: 1941477166}
   - {fileID: 1510941498}
   - {fileID: 1523393690}
   - {fileID: 1471827742}
   - {fileID: 1392513155}
   - {fileID: 1952434832}
   - {fileID: 1862048974}
+  - {fileID: 1587150740}
+  - {fileID: 1941477166}
   - {fileID: 415582705}
+  - {fileID: 1401782190}
+  - {fileID: 1287817825}
   - {fileID: 250418783}
   m_Father: {fileID: 519420032}
   m_RootOrder: 0
@@ -1462,7 +1462,7 @@ GameObject:
   - component: {fileID: 1862048976}
   - component: {fileID: 1862048975}
   m_Layer: 5
-  m_Name: ImgDraw
+  m_Name: Draw
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1481,7 +1481,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 11
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: -0.004, y: -1.433, z: -0.144}
   m_AnchorMin: {x: 0.34539583, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1508,7 +1508,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 134c88ff216e2cf4c91486d9f34cc372, type: 3}
+  m_Texture: {fileID: 2800000, guid: b7c0b6fbc63254c4c9402c57137e36b4, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -1535,7 +1535,7 @@ GameObject:
   - component: {fileID: 1941477168}
   - component: {fileID: 1941477167}
   m_Layer: 5
-  m_Name: LblUserId
+  m_Name: LabelUserId
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1554,7 +1554,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 5
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1615,7 +1615,7 @@ GameObject:
   - component: {fileID: 1952434834}
   - component: {fileID: 1952434833}
   m_Layer: 5
-  m_Name: ImgHeartEleven
+  m_Name: HeartEleven
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1634,7 +1634,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1716242147}
-  m_RootOrder: 10
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: -0.83, y: -1.168, z: -35.399}
   m_AnchorMin: {x: 0.34539583, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1661,7 +1661,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 7175165e8793d6a4bbada8ffbeac110c, type: 3}
+  m_Texture: {fileID: 2800000, guid: 23b254303efdbe44380a93cb30eb6af8, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
