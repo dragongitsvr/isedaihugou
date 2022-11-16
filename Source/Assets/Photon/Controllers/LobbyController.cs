@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using Photon.Pun;
 using Assets.Photon.Argencies;
 using System;
+using Assets.Services;
 
 namespace Assets.Photon.Controllers
 {
@@ -33,8 +34,19 @@ namespace Assets.Photon.Controllers
         /// </summary>
         public void BtnCreateRoom_Clicked()
         {
+            try
+            {
+                // インスタンス※MonoBehaviourを継承している場合は、new禁止
+                var lobbyService = gameObject.AddComponent<LobbyService>();
 
-        }
+                lobbyService.ConnectToPhotonServer(_dspUserId.text);
+
+            }
+            catch(Exception e)
+            {
+                Debug.LogError(e.StackTrace);
+            }
+}
 
     }
 }

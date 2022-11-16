@@ -20,6 +20,13 @@ namespace Photon.Commons
 
         // シーン
         public static readonly string SCENE_NAME_LOBBY = "Lobby";
+        public static readonly string SCENE_NAME_MATCHING = "Matching";
+
+        // 部屋名
+        public static readonly string ROOM_NAME = "IT研究部 伊勢大富豪";
+
+        // 最大プレイヤー数
+        public static readonly int MAX_PLAYERES = 4;
 
     }
 
