@@ -30,7 +30,7 @@ namespace Assets.Photon.Controllers
         }
 
         /// <summary>
-        /// 「ルームを作る」ボタン押下時の処理
+        /// 「ルーム作成」ボタン押下時の処理
         /// </summary>
         public void BtnCreateRoom_Clicked()
         {
