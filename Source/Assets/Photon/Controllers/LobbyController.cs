@@ -39,14 +39,33 @@ namespace Assets.Photon.Controllers
                 // インスタンス※MonoBehaviourを継承している場合は、new禁止
                 var lobbyService = gameObject.AddComponent<LobbyService>();
 
-                lobbyService.ConnectToPhotonServer(_dspUserId.text);
+                lobbyService.ConnectToPhotonServer(_dspUserId.text,true);
 
             }
             catch(Exception e)
             {
                 Debug.LogError(e.StackTrace);
             }
-}
+        }
+
+        /// <summary>
+        /// 「ルーム入室」ボタン押下時の処理
+        /// </summary>
+        public void BtnJoinRoom_Clicked()
+        {
+            try
+            {
+                // インスタンス※MonoBehaviourを継承している場合は、new禁止
+                var lobbyService = gameObject.AddComponent<LobbyService>();
+
+                lobbyService.ConnectToPhotonServer(_dspUserId.text,false);
+
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.StackTrace);
+            }
+        }
 
     }
 }

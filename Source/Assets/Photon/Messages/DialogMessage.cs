@@ -19,5 +19,7 @@ namespace Photon.Messages
 
         public static readonly string ERR_MSG_USER_ID_REGISTERD = "入力したユーザーIDは既に登録済みです。ヽ(`Д´)ﾉﾌﾟﾝﾌﾟﾝ";
 
+        public static readonly string ERR_MSG_JOIN_ROOM_FAILED = "ルーム入室に失敗しました。ルームを作成してください。ヽ(`Д´)ﾉﾌﾟﾝﾌﾟﾝ";
+
     }
 }

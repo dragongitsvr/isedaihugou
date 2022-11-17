@@ -1,8 +1,11 @@
 ﻿using Assets.Photon.Argencies;
 using Photon.Commons;
+using Photon.Messages;
 using Photon.Pun;
 using Photon.Realtime;
+using Photon.Services;
 using System;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Assets.Services
@@ -11,6 +14,7 @@ namespace Assets.Services
     {
         // グローバル変数
         private string _userId;
+        private bool _needCreatedRoomFlg;
 
         /// <summary>
         /// 初期化処理
@@ -26,10 +30,14 @@ namespace Assets.Services
         /// Photonサーバーに接続
         /// </summary>
         /// <param name="userId">ユーザーID</param>
-        public void ConnectToPhotonServer(string userId)
+        /// <param name="needCreatedRoomFlg">ルームを作成するかどうかのフラグ</param>
+        public void ConnectToPhotonServer(string userId,bool needCreatedRoomFlg)
         {
             // 「マッチング画面」に渡す
             _userId = userId;
+
+            // ルーム作成の判定
+            _needCreatedRoomFlg = needCreatedRoomFlg;
 
             // Photonに接続されているかどうか
             if (!PhotonNetwork.IsConnected)
@@ -66,16 +74,25 @@ namespace Assets.Services
         public override void OnJoinedLobby()
         {
             UnityEngine.Debug.Log("ロビーに入った");
-            var roomOptions = new RoomOptions
-            {
-                MaxPlayers = Convert.ToByte(Const.MAX_PLAYERES),
-                IsOpen = true,
-                IsVisible = false,
-                PublishUserId = true
-            };
 
-            // 部屋を作成
-            PhotonNetwork.CreateRoom(Const.ROOM_NAME, roomOptions, null);
+            // ルーム入室の場合は部屋を作成しない
+            if (!_needCreatedRoomFlg)
+            {
+                PhotonNetwork.JoinRoom(Const.ROOM_NAME);
+            }
+            else
+            {
+                var roomOptions = new RoomOptions
+                {
+                    MaxPlayers = Convert.ToByte(Const.MAX_PLAYERES),
+                    IsOpen = true,
+                    IsVisible = false,
+                    PublishUserId = true
+                };
+
+                // 部屋を作成
+                PhotonNetwork.CreateRoom(Const.ROOM_NAME, roomOptions, null);
+            }
 
         }
 
@@ -95,6 +112,19 @@ namespace Assets.Services
             // マッチング画面に遷移
             TitleLobbyArgency.UserId = _userId;
             SceneManager.LoadScene(Const.SCENE_NAME_MATCHING);
+
+        }
+
+        /// <summary>
+        /// ルーム参加に失敗
+        /// </summary>
+        /// <param name="returnCode"></param>
+        /// <param name="message"></param>
+        public override void OnJoinRoomFailed(short returnCode, string message)
+        {
+            // ダイアログ表示
+            DialogService dialogService = new();
+            dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE,DialogMessage.ERR_MSG_JOIN_ROOM_FAILED);
 
         }
 
