@@ -3,6 +3,10 @@ using UnityEngine;
 /// <summary>
 /// 「ダイアログ」のコントローラー
 /// </summary>
-public class DialogController : MonoBehaviour
+public class DialogController
 {
+    public void CallDialog()
+    {
+    }
+
 }

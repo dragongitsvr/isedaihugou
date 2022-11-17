@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using Assets.Services;
 using System;
+using Photon.Services;
 
 /// <summary>
 /// タイトル画面のコントローラー
@@ -16,8 +17,8 @@ public class TitleController : MonoBehaviour
     /// </summary>
     public void BtnRegister_Clicked()
     {
-        // インスタンス
-        TitleService titleService = new();
+        // インスタンス※MonoBehaviourを継承している場合は、new禁止
+        var titleService = gameObject.AddComponent<TitleService>();
 
         try
         {
@@ -47,8 +48,8 @@ public class TitleController : MonoBehaviour
     {
         try
         {
-            // インスタンス
-            TitleService titleService = new();
+            // インスタンス※MonoBehaviourを継承している場合は、new禁止
+            var titleService = gameObject.AddComponent<TitleService>();
 
             titleService.LoginUser(_inpUserId.text);
 

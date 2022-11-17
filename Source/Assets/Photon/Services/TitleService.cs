@@ -7,10 +7,11 @@ using PlayFab.ClientModels;
 using PlayFab;
 using UnityEngine.SceneManagement;
 using Assets.Photon.Argencies;
+using UnityEngine;
 
 namespace Assets.Services
 {
-    public class TitleService
+    public class TitleService : MonoBehaviour
     {
         // グローバル変数
         private string _userId;
@@ -26,8 +27,9 @@ namespace Assets.Services
                 // 変数
                 bool result = false;
 
-                // インスタンス
-                DialogService dialogService = new();
+                // インスタンス※MonoBehaviourを継承している場合は、new禁止
+                var dialogService = gameObject.GetComponent<DialogService>();
+                dialogService.Init();
 
                 // 空チェック
                 if (string.IsNullOrWhiteSpace(userId))
@@ -37,7 +39,7 @@ namespace Assets.Services
                 }
 
                 // 文字数チェック
-                if (userId.Length <= Const.CONST_USER_ID_MIN_LENGTH && userId.Length >= Const.CONST_USER_ID_MAX_LENGTH)
+                if (userId.Length <= Const.CONST_USER_ID_MIN_LENGTH || userId.Length >= Const.CONST_USER_ID_MAX_LENGTH)
                 {
                     dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE, DialogMessage.ERR_MSG_USER_ID_LENGTH);
                     return result;
@@ -85,8 +87,8 @@ namespace Assets.Services
             {
                 UnityEngine.Debug.Log("ログイン完了");
 
-                // インスタンス
-                DialogService dialogService = new();
+                // インスタンス※MonoBehaviourを継承している場合は、new禁止
+                var dialogService = gameObject.AddComponent<DialogService>();
 
                 // 既に登録済みの場合
                 if (!result.NewlyCreated)
