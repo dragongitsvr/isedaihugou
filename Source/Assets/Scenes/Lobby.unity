@@ -279,9 +279,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: TitleController, Assembly-CSharp
-        m_MethodName: BtnRegister_Clicked
+      - m_Target: {fileID: 1665679583}
+        m_TargetAssemblyTypeName: Assets.Photon.Controllers.LobbyController, Assembly-CSharp
+        m_MethodName: BtnWatchResult_Clicked
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

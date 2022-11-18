@@ -128,5 +128,17 @@ namespace Assets.Services
 
         }
 
+        /// <summary>
+        /// 「成績」画面をロード
+        /// </summary>
+        /// <param name="userId">ユーザーID</param>
+        public void LoadResult(string userId)
+        {
+            // 「成績」画面に遷移
+            LobbyResultArgency.UserId = userId;
+            SceneManager.LoadScene(Const.SCENE_NAME_RESULT);
+
+        }
+
     }
 }

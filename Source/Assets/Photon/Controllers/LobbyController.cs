@@ -67,5 +67,24 @@ namespace Assets.Photon.Controllers
             }
         }
 
+        /// <summary>
+        /// 「成績を見る」ボタン押下時の処理
+        /// </summary>
+        public void BtnWatchResult_Clicked()
+        {
+            try
+            {
+                // インスタンス※MonoBehaviourを継承している場合は、new禁止
+                var lobbyService = gameObject.AddComponent<LobbyService>();
+
+                lobbyService.LoadResult(_dspUserId.text);
+
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.StackTrace);
+            }
+        }
+
     }
 }
