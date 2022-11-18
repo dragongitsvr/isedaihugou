@@ -88,7 +88,7 @@ namespace Assets.Services
                 UnityEngine.Debug.Log("ログイン完了");
 
                 // インスタンス※MonoBehaviourを継承している場合は、new禁止
-                var dialogService = gameObject.AddComponent<DialogService>();
+                var dialogService = gameObject.GetComponent<DialogService>();
 
                 // 既に登録済みの場合
                 if (!result.NewlyCreated)
@@ -162,8 +162,8 @@ namespace Assets.Services
             {
                 UnityEngine.Debug.Log("ユーザー情報登録完了");
 
-                // インスタンス
-                DialogService dialogService = new();
+                // インスタンス※MonoBehaviourを継承している場合は、new禁止
+                var dialogService = gameObject.GetComponent<DialogService>();
 
                 dialogService.OpenOkDialog(DialogMessage.SUCCESS_MSG_TITLE, DialogMessage.INF_MSG_USER_DATA_SUCCESSED);
 
