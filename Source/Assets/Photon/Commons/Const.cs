@@ -29,6 +29,9 @@ namespace Photon.Commons
         // 最大プレイヤー数
         public static readonly int MAX_PLAYERES = 4;
 
+        // ランキング名
+        public static readonly string RANKING_NAME = "ユーザーID取得用";
+
     }
 
 }

@@ -39,7 +39,7 @@ namespace Assets.Services
                 }
 
                 // 文字数チェック
-                if (userId.Length <= Const.CONST_USER_ID_MIN_LENGTH || userId.Length >= Const.CONST_USER_ID_MAX_LENGTH)
+                if (userId.Length < Const.CONST_USER_ID_MIN_LENGTH || userId.Length > Const.CONST_USER_ID_MAX_LENGTH)
                 {
                     dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE, DialogMessage.ERR_MSG_USER_ID_LENGTH);
                     return result;
@@ -104,7 +104,7 @@ namespace Assets.Services
                         DisplayName = _userId
                     }
                     , result => { UnityEngine.Debug.Log("表示名の更新完了"); }
-                    , error => { UnityEngine.Debug.Log("表示名の更新失敗"); }
+                    , error => OnUpdateDisplayNameFailure(error)
                 );
 
                 // 登録情報
@@ -123,7 +123,8 @@ namespace Assets.Services
                         { Const.COLUMN_NAME_RANK_BACK_ELEVEN_NUM, "0" },
                         { Const.COLUMN_NAME_RANK_STAIRS_NUM, "0" },
                         { Const.COLUMN_NAME_RANK_REVOLUTION_NUM, "0" }
-                    }
+                    },
+                    Permission = UserDataPermission.Public
                 };
 
                 // ユーザー情報の更新
@@ -163,6 +164,29 @@ namespace Assets.Services
             try
             {
                 UnityEngine.Debug.Log("ユーザー情報登録完了");
+
+                var random = new System.Random();
+
+                // ランキング登録
+                PlayFabClientAPI.UpdatePlayerStatistics(new UpdatePlayerStatisticsRequest
+                {
+                    Statistics = new List<StatisticUpdate>
+                    {
+                        new StatisticUpdate
+                        {
+                            StatisticName =  Const.RANKING_NAME,
+                            Value = random.Next(0,100)
+                        }
+                    }
+                },
+                result =>
+                {
+                    Debug.Log("ランキング登録完了！");
+                },
+                error =>
+                {
+                    Debug.Log("ランキング登録失敗");
+                });
 
                 // インスタンス※MonoBehaviourを継承している場合は、new禁止
                 var dialogService = gameObject.GetComponent<DialogService>();
@@ -248,6 +272,23 @@ namespace Assets.Services
             try
             {
                 UnityEngine.Debug.LogError($"ログイン失敗\n{error.GenerateErrorReport()}");
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+
+        }
+
+        /// <summary>
+        /// 表示名更新時の失敗処理
+        /// </summary>
+        /// <param name="error">エラー内容</param>
+        private void OnUpdateDisplayNameFailure(PlayFabError error)
+        {
+            try
+            {
+                UnityEngine.Debug.LogError($"表示名更新失敗\n{error.GenerateErrorReport()}");
             }
             catch (Exception e)
             {

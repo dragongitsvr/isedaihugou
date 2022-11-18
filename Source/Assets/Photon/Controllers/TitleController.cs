@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using Assets.Services;
 using System;
 using Photon.Services;
+using Unity.Collections;
 
 /// <summary>
 /// タイトル画面のコントローラー
@@ -12,13 +13,18 @@ public class TitleController : MonoBehaviour
     // 入力フィールド
     [SerializeField] private Text _inpUserId;
 
+    public void Start()
+    {
+        NativeLeakDetection.Mode = NativeLeakDetectionMode.EnabledWithStackTrace;
+    }
+
     /// <summary>
     /// 「登録」ボタン押下時の処理
     /// </summary>
     public void BtnRegister_Clicked()
     {
         // インスタンス※MonoBehaviourを継承している場合は、new禁止
-        var titleService = gameObject.AddComponent<TitleService>();
+        var titleService = gameObject.GetComponent<TitleService>();
 
         try
         {
