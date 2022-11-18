@@ -110,9 +110,11 @@ namespace Assets.Services
                 // 登録情報
                 var userRequest = new UpdateUserDataRequest()
                 {
+                    // PlayFabでは10個までの項目しか登録できないため
+                    // 1～4位の回数はカンマ区切りで保持
                     Data = new Dictionary<string, string>
                     {
-                        { Const.COLUMN_NAME_RANK_NUM, "0" },
+                        { Const.COLUMN_NAME_RANK_NUM, "0,0,0,0" },
                         { Const.COLUMN_NAME_RANK_REVERSE_FOUR_NUM, "0" },
                         { Const.COLUMN_NAME_RANK_SKIP_FIVE_NUM, "0" },
                         { Const.COLUMN_NAME_RANK_HAND_SEVEN_NUM, "0" },
