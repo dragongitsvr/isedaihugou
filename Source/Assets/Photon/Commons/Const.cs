@@ -35,6 +35,24 @@ namespace Photon.Commons
         // ランキング名
         public static readonly string RANKING_NAME = "ユーザーID取得用";
 
+        // 「結果」画面の行間
+        public static readonly int RESULT_BETWEEN_LINES_HEIGHT = 71;
+
+        // 「結果」画面の列番号
+        public static readonly int RESULT_COLUMN_INDEX_DISPLAY_ID = 0;
+        public static readonly int RESULT_COLUMN_INDEX_FIRST_RANK_NUM = 1;
+        public static readonly int RESULT_COLUMN_INDEX_SECOND_RANK_NUM = 2;
+        public static readonly int RESULT_COLUMN_INDEX_THIRD_RANK_NUM = 3;
+        public static readonly int RESULT_COLUMN_INDEX_FOURTH_RANK_NUM = 4;
+        public static readonly int RESULT_COLUMN_INDEX_REVERSE_FOUR_NUM = 5;
+        public static readonly int RESULT_COLUMN_INDEX_SKIP_FIVE_NUM = 6;
+        public static readonly int RESULT_COLUMN_INDEX_HAND_SEVEN_NUM = 7;
+        public static readonly int RESULT_COLUMN_INDEX_AMBULANCE_NINE_NUM = 8;
+        public static readonly int RESULT_COLUMN_INDEX_THROW_TEN_NUM = 9;
+        public static readonly int RESULT_COLUMN_INDEX_BACK_ELEVEN_NUM = 10;
+        public static readonly int RESULT_COLUMN_INDEX_STAIRS_NUM = 11;
+        public static readonly int RESULT_COLUMN_INDEX_REVOLUTION_NUM = 12;
+
     }
 
 }

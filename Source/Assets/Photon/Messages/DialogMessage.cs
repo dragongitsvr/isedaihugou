@@ -21,5 +21,7 @@ namespace Photon.Messages
 
         public static readonly string ERR_MSG_JOIN_ROOM_FAILED = "ルーム入室に失敗しました。ルームを作成してください。ヽ(`Д´)ﾉﾌﾟﾝﾌﾟﾝ";
 
+        public static readonly string ERR_MSG_RUNKING_INFO_GET_FAILED = "ランキング情報を取得できませんでした。(*´Д｀)";
+
     }
 }
