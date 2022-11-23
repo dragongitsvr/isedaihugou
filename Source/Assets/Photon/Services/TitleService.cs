@@ -8,6 +8,9 @@ using PlayFab;
 using UnityEngine.SceneManagement;
 using Assets.Photon.Argencies;
 using UnityEngine;
+using Assets.Photon.Services;
+using Cysharp.Threading.Tasks;
+using UnityEditor.PackageManager;
 
 namespace Assets.Services
 {
@@ -222,38 +225,33 @@ namespace Assets.Services
         /// ログイン処理
         /// </summary>
         /// <param name="userId">ユーザーID</param>
-        public void LoginUser(string userId)
+        public async UniTask LoginUser(string userId)
         {
             try
             {
+                // ログイン処理
                 var request = new LoginWithCustomIDRequest() { CustomId = userId, CreateAccount = false };
                 _userId = userId;
-                PlayFabClientAPI.LoginWithCustomID(request, OnLoginSuccess, OnLoginFailure);
+                PlayFabError error = null;
+                LoginResult loginResult = null;
+                PlayFabClientAPI.LoginWithCustomID(request, x => loginResult = x, x => error = x);
 
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+                await new WaitUntil(() => loginResult != null || error != null);
 
-        }
+                // ログイン成功
+                if(loginResult != null)
+                {
+                    TitleLobbyArgency.UserId = _userId;
+                    await SceneManager.LoadSceneAsync(Const.SCENE_NAME_LOBBY);
+                }
 
-        /// <summary>
-        /// ログイン成功時の処理
-        /// </summary>
-        /// <param name="result">ログイン結果</param>
-        private void OnLoginSuccess(LoginResult result)
-        {
-            try
-            {
-                UnityEngine.Debug.Log("ログイン完了");
-
-                // TODO:対戦中の場合は再接続
-
-                // ロビー画面に遷移
-                TitleLobbyArgency.UserId = _userId;
-                SceneManager.LoadScene(Const.SCENE_NAME_LOBBY);
-
+                // ログイン失敗
+                if(error != null)
+                {
+                    // インスタンス※MonoBehaviourを継承している場合は、new禁止
+                    var dialogService = gameObject.GetComponent<DialogService>();
+                    dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE, DialogMessage.ERR_MSG_LOGIN_FAILED);
+                }
 
             }
             catch (Exception e)

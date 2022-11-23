@@ -23,5 +23,7 @@ namespace Photon.Messages
 
         public static readonly string ERR_MSG_RUNKING_INFO_GET_FAILED = "ƒ‰ƒ“ƒLƒ“ƒOî•ñ‚ğæ“¾‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B(*L„DM)";
 
+        public static readonly string ERR_MSG_LOGIN_FAILED = "ƒƒOƒCƒ“‚É¸”s‚µ‚Ü‚µ‚½B(*L„DM)";
+
     }
 }
