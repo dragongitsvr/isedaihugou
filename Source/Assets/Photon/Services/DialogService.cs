@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Photon.Services;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace Photon.Services
@@ -49,6 +50,8 @@ namespace Photon.Services
         /// </summary>
         private void DeleteDialog()
         {
+            var loadingService = gameObject.GetComponent<LoadingService>();
+            loadingService.CloseLoading();
             dialogCanvasDelete.sortingOrder = 0;
             dialogCanvasDelete.enabled = false;
         }

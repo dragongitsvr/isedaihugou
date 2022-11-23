@@ -8,9 +8,7 @@ using PlayFab;
 using UnityEngine.SceneManagement;
 using Assets.Photon.Argencies;
 using UnityEngine;
-using Assets.Photon.Services;
 using Cysharp.Threading.Tasks;
-using UnityEditor.PackageManager;
 
 namespace Assets.Services
 {
