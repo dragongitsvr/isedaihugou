@@ -403,3 +403,7 @@ sysinfo.txt
 # Crashlytics generated file
 Assets/StreamingAssets/crashlytics-build.properties
 /UserSettings/Layouts/default-2021.dwlt
+
+/Source/Assets/Photon/Fonts/NotoSansJP-Light SDF.asset
+/Source/Assets/TextMesh Pro/Resources/Fonts & Materials/NotoSansJP-Medium SDF.asset
+
