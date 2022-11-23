@@ -12,6 +12,8 @@ using UnityEngine.UI;
 using System.Linq;
 using Photon.Services;
 using Photon.Messages;
+using Assets.Photon.Argencies;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Services
 {
@@ -224,6 +226,25 @@ namespace Assets.Services
             gameObject.transform.GetChild(Const.RESULT_COLUMN_INDEX_BACK_ELEVEN_NUM).GetComponent<Text>().text = resultDto.BackElevenNum.ToString();
             gameObject.transform.GetChild(Const.RESULT_COLUMN_INDEX_STAIRS_NUM).GetComponent<Text>().text = resultDto.StairsNum.ToString();
             gameObject.transform.GetChild(Const.RESULT_COLUMN_INDEX_REVOLUTION_NUM).GetComponent<Text>().text = resultDto.RevolutionNum.ToString();
+        }
+
+        /// <summary>
+        /// 「ロビー」画面に遷移
+        /// </summary>
+        public void LoadLobby()
+        {
+            try
+            {
+                // ロビー画面に遷移
+                LobbyResultArgency.UserId = _userId;
+                SceneManager.LoadScene(Const.SCENE_NAME_LOBBY);
+
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+
         }
 
     }
