@@ -1,5 +1,7 @@
 ﻿using Assets.Photon.Argencies;
+using Assets.Photon.Services;
 using Assets.Services;
+using Cysharp.Threading.Tasks;
 using Photon.Services;
 using System;
 using UnityEngine;
@@ -16,16 +18,29 @@ namespace Assets.Photon.Controllers
         /// <summary>
         /// 初期処理
         /// </summary>
-        void Start()
+        async void Start()
         {
             var userId = TitleLobbyArgency.UserId;
+            var loadingService = gameObject.GetComponent<LoadingService>();
 
-            // ログインユーザの表示
-            _dspUserId.text = userId;
+            try
+            {
+                loadingService.ShowLoading();
 
-            // インスタンス※MonoBehaviourを継承している場合は、new禁止
-            var resultService = gameObject.GetComponent<ResultService>();
-            resultService.Init(userId);
+                // ログインユーザの表示
+                _dspUserId.text = userId;
+
+                // インスタンス※MonoBehaviourを継承している場合は、new禁止
+                var resultService = gameObject.GetComponent<ResultService>();
+                await resultService.Init(userId); ;
+
+                loadingService.CloseLoading();
+
+            }
+            catch(Exception e) 
+            {
+                Debug.LogError(e.StackTrace);
+            }   
 
         }
 

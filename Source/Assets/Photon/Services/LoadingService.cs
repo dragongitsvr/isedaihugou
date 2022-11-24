@@ -34,8 +34,14 @@ namespace Assets.Photon.Services
         /// </summary>
         public void CloseLoading()
         {
-            loading.SetActive(false);
-            loadingBackGround.SetActive(false);
+            if(loading != null)
+            {
+                loading.SetActive(false);
+            }
+            if(loadingBackGround != null)
+            {
+                loadingBackGround.SetActive(false);
+            }
         }
     }
 }

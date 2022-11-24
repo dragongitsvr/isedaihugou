@@ -39,7 +39,7 @@ namespace Assets.Services
                 _userId = userId;
 
                 var resultsDto = new List<ResultDto> ();
-                var dialogService = new DialogService();
+                var dialogService = gameObject.GetComponent<DialogService>();
 
                 var leaderboardRequest = new GetLeaderboardRequest
                 {
