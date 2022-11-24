@@ -4,6 +4,7 @@ using Photon.Pun;
 using Assets.Photon.Argencies;
 using System;
 using Assets.Services;
+using Assets.Photon.Services;
 
 namespace Assets.Photon.Controllers
 {
@@ -38,8 +39,7 @@ namespace Assets.Photon.Controllers
             {
                 // インスタンス※MonoBehaviourを継承している場合は、new禁止
                 var lobbyService = gameObject.AddComponent<LobbyService>();
-
-                lobbyService.ConnectToPhotonServer(_dspUserId.text,true);
+                lobbyService.LoadMatching(_dspUserId.text,true);
 
             }
             catch(Exception e)
@@ -57,8 +57,7 @@ namespace Assets.Photon.Controllers
             {
                 // インスタンス※MonoBehaviourを継承している場合は、new禁止
                 var lobbyService = gameObject.AddComponent<LobbyService>();
-
-                lobbyService.ConnectToPhotonServer(_dspUserId.text,false);
+                lobbyService.LoadMatching(_dspUserId.text,false);
 
             }
             catch (Exception e)
@@ -76,7 +75,6 @@ namespace Assets.Photon.Controllers
             {
                 // インスタンス※MonoBehaviourを継承している場合は、new禁止
                 var lobbyService = gameObject.AddComponent<LobbyService>();
-
                 lobbyService.LoadResult(_dspUserId.text);
 
             }
