@@ -32,7 +32,7 @@ namespace Photon.Services
             _title.text = title;
             _message.text = message;
 
-            dialogCanvasDelete.sortingOrder = 1;
+            dialogCanvasDelete.sortingOrder = 2;
             dialogCanvasDelete.enabled = true;
 
         }
