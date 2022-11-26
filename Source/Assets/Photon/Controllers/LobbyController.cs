@@ -20,8 +20,22 @@ namespace Assets.Photon.Controllers
         {
             try
             {
+                var userId = string.Empty;
+
+                // 「タイトル」画面からの遷移
+                if (!string.IsNullOrWhiteSpace(TitleLobbyArgency.UserId))
+                {
+                    userId = TitleLobbyArgency.UserId;
+                }
+                // 「マッチング」画面からの遷移
+                else if (!string.IsNullOrWhiteSpace(LobbyMatchingArgency.UserId))
+                {
+                    userId = LobbyMatchingArgency.UserId;
+                }
+
                 // ログインユーザの表示
-                _dspUserId.text = TitleLobbyArgency.UserId;
+                _dspUserId.text = userId;
+
             }
             catch(Exception e)
             {

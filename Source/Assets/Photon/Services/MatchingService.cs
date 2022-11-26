@@ -1,6 +1,7 @@
 ﻿using Assets.Photon.Argencies;
 using Cysharp.Threading.Tasks;
 using ExitGames.Client.Photon;
+using ExitGames.Client.Photon.StructWrapping;
 using Photon.Commons;
 using Photon.Messages;
 using Photon.Pun;
@@ -20,12 +21,17 @@ namespace Assets.Services
     public class MatchingService : MonoBehaviourPunCallbacks
     {
         bool _needCreatedRoomFlg;
-        private readonly byte SpawnEvent = 1;
+        private readonly byte BtnReadyEvent = 1;
         public PhotonView _photonView;
         public Text _firstPlayer;
         public Text _secondPlayer;
         public Text _thirdPlayer;
         public Text _fourthPlayer;
+        public Image _firstPlayerFlame;
+        public Image _secondPlayerFlame;
+        public Image _thirdPlayerFlame;
+        public Image _fourthPlayerFlame;
+        public string _userId;
 
         /// <summary>
         /// Photonに接続した時
@@ -136,7 +142,10 @@ namespace Assets.Services
         /// </summary>
         public override void OnLeftRoom()
         {
-            //CleanUpList();
+            // ロビー画面に遷移
+            LobbyMatchingArgency.UserId = _userId;
+            PhotonNetwork.Disconnect();
+            SceneManager.LoadScene(Const.SCENE_NAME_LOBBY);
         }
 
         /// <summary>
@@ -182,18 +191,27 @@ namespace Assets.Services
                 , _fourthPlayer
             };
 
+            var matchingFrames = new List<Image>()
+            {
+                _firstPlayerFlame
+                , _secondPlayerFlame
+                , _thirdPlayerFlame
+                , _fourthPlayerFlame
+            };
+
             // 名前を表示
-            for(var i = 0;i < playerList.Count(); i++)
+            for (var i = 0; i < playerList.Count(); i++)
             {
                 matchingTexts[i].text = playerList[i].NickName;
             }
 
             // プレイヤーが揃っていない場合
             var playerCount = playerList.Count;
-            if(playerList.Count != matchingTexts.Count)
+            if (playerList.Count != matchingTexts.Count)
             {
-                for(var i = playerList.Count + 1;i <= matchingTexts.Count; i++)
+                for (var i = playerList.Count + 1; i <= matchingTexts.Count; i++)
                 {
+                    matchingFrames[i - 1].enabled = false;
                     matchingTexts[i - 1].text = "待機中...";
                 }
             }
@@ -205,12 +223,65 @@ namespace Assets.Services
         /// </summary>
         /// <param name="returnCode">エラーコード</param>
         /// <param name="message">エラーメッセージ</param>
-        public override void OnCreateRoomFailed(short returnCode,string message)
+        public override void OnCreateRoomFailed(short returnCode, string message)
         {
             PhotonNetwork.JoinRoom(Const.ROOM_NAME);
             //// 部屋作成に失敗
             //var dialogService = gameObject.GetComponent<DialogService>();           
             //dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE, DialogMessage.ERR_MSG_CREATE_ROOM_FAILED);
+        }
+
+        /// <summary>
+        /// 「準備完了」ボタン押下時の処理
+        /// </summary>
+        public void OnBtnReadyClicked(string userId)
+        {
+            var properties = new Hashtable
+            {
+                { "btnReadyClickedPlayer", userId },
+            };
+
+            PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
+
+        }
+
+        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable hashTable)
+        {
+            string userId = hashTable["btnReadyClickedPlayer"].ToString();
+
+            // 自分が何番目にいるかを確認して、赤枠表示
+            var matchingTexts = new List<Text>()
+            {
+                _firstPlayer
+                , _secondPlayer
+                , _thirdPlayer
+                , _fourthPlayer
+            };
+
+            var matchingFrames = new List<Image>()
+            {
+                _firstPlayerFlame
+                , _secondPlayerFlame
+                , _thirdPlayerFlame
+                , _fourthPlayerFlame
+            };
+
+            for (var i = 0; i < matchingTexts.Count(); i++)
+            {
+                if (matchingTexts[i].text == userId)
+                {
+                    matchingFrames[i].enabled = !matchingFrames[i].enabled;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 「退出」ボタン押下時の処理
+        /// </summary>
+        public void OnBtnLeaveClicked(string userId)
+        {
+            _userId = userId;
+            PhotonNetwork.LeaveRoom();
         }
 
     }
