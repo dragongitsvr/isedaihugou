@@ -11,6 +11,8 @@ namespace Photon.Messages
 
         public static readonly string INF_MSG_USER_DATA_SUCCESSED = "ユーザー情報の登録が完了しました。(*'▽')";
 
+        public static readonly string INF_MSG_GAME_START = "ゲームを開始します。(*'▽')";
+
         public static readonly string ERR_MSG_TITLE = "エラーメッセージ";
 
         public static readonly string ERR_MSG_USER_ID_EMPTY = "ユーザーIDを入力してください。ヽ(`Д´)ﾉﾌﾟﾝﾌﾟﾝ";

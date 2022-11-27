@@ -25,6 +25,7 @@ namespace Photon.Commons
         public static readonly string SCENE_NAME_LOBBY = "Lobby";
         public static readonly string SCENE_NAME_MATCHING = "Matching";
         public static readonly string SCENE_NAME_RESULT = "Result";
+        public static readonly string SCENE_NAME_FIGHT = "Fight";
 
         // •”‰®–¼
         public static readonly string ROOM_NAME = "ITŒ¤‹†•” ˆÉ¨‘å•x‹";

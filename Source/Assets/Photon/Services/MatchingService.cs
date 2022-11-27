@@ -13,8 +13,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -24,8 +22,6 @@ namespace Assets.Services
     public class MatchingService : MonoBehaviourPunCallbacks
     {
         bool _needCreatedRoomFlg;
-        private readonly byte BtnReadyEvent = 1;
-        public PhotonView _photonView;
         public Text _firstPlayer;
         public Text _secondPlayer;
         public Text _thirdPlayer;
@@ -34,7 +30,8 @@ namespace Assets.Services
         public Image _secondPlayerFlame;
         public Image _thirdPlayerFlame;
         public Image _fourthPlayerFlame;
-        public string _userId;
+        private string _userId;
+        public Button _btnReady;
 
         /// <summary>
         /// Photonに接続した時
@@ -277,29 +274,13 @@ namespace Assets.Services
                     matchingFrames[i].enabled = !matchingFrames[i].enabled;
                 }
             }
-        }
 
-        /// <summary>
-        /// 「退出」ボタン押下時の処理
-        /// </summary>
-        public void OnBtnLeaveClicked(string userId)
-        {
-            _userId = userId;
-            var hashKeyReadyPlayer = $"isReadyPlayer" + userId;
-            var properties = new ExitGames.Client.Photon.Hashtable
-            {
-                { hashKeyReadyPlayer,false },
-            };
-            PhotonNetwork.CurrentRoom.SetCustomProperties(properties);
-            PhotonNetwork.LeaveRoom();
-        }
+            // 人数が揃っていない場合はゲームを開始しない
+            if (PhotonNetwork.CurrentRoom.PlayerCount != Const.MAX_PLAYERES) return;
 
-        public void Update()
-        {
-            if (PhotonNetwork.CurrentRoom == null) return;
             var hashTables = PhotonNetwork.CurrentRoom.CustomProperties;
             var readyCount = 0;
-            foreach (var hash in hashTables) 
+            foreach (var hash in hashTables)
             {
                 if (hash.Key.ToString().Contains("isReadyPlayer"))
                 {
@@ -318,13 +299,33 @@ namespace Assets.Services
         }
 
         /// <summary>
-        /// 3秒後に対戦画面に遷移
+        /// 「退出」ボタン押下時の処理
+        /// </summary>
+        public void OnBtnLeaveClicked(string userId)
+        {
+            _userId = userId;
+            var hashKeyReadyPlayer = $"isReadyPlayer" + userId;
+            var properties = new ExitGames.Client.Photon.Hashtable
+            {
+                { hashKeyReadyPlayer,false },
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(properties);
+            PhotonNetwork.LeaveRoom();
+        }
+
+        /// <summary>
+        /// 対戦画面に遷移
         /// </summary>
         /// <returns></returns>
         IEnumerator LoadFight()
         {
-            yield return new WaitForSeconds(3.0f);
-            SceneManager.LoadScene("Fight");
+            _btnReady.enabled = false;
+            yield return new WaitForSeconds(2.0f);
+            // インスタンス※MonoBehaviourを継承している場合は、new禁止
+            var dialogService = gameObject.GetComponent<DialogService>();
+            dialogService.OpenOkDialog(DialogMessage.SUCCESS_MSG_TITLE, DialogMessage.INF_MSG_GAME_START);
+            yield return new WaitForSeconds(4.0f);
+            SceneManager.LoadScene(Const.SCENE_NAME_FIGHT);
         }
 
     }
