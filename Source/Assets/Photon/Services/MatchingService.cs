@@ -199,21 +199,21 @@ namespace Assets.Services
                 , _fourthPlayerFlame
             };
 
-            // 名前を表示
-            for (var i = 0; i < playerList.Count(); i++)
+            for (var i = 0; i < matchingTexts.Count; i++)
             {
-                matchingTexts[i].text = playerList[i].NickName;
-            }
-
-            // プレイヤーが揃っていない場合
-            var playerCount = playerList.Count;
-            if (playerList.Count != matchingTexts.Count)
-            {
-                for (var i = playerList.Count + 1; i <= matchingTexts.Count; i++)
+                if (playerList.ElementAtOrDefault(i) == null)
                 {
-                    matchingFrames[i - 1].enabled = false;
-                    matchingTexts[i - 1].text = "待機中...";
+                    matchingFrames[i].enabled = false;
+                    matchingTexts[i].text = "待機中...";
                 }
+                else
+                {
+                    var hashKeyReadyPlayer = $"isReadyPlayer" + playerList[i].NickName;
+                    var isReadyPlayer = Convert.ToBoolean(PhotonNetwork.CurrentRoom.CustomProperties[hashKeyReadyPlayer] ?? false);
+                    matchingFrames[i].enabled = isReadyPlayer;
+                    matchingTexts[i].text = playerList[i].NickName;
+                }
+
             }
 
         }
@@ -226,9 +226,6 @@ namespace Assets.Services
         public override void OnCreateRoomFailed(short returnCode, string message)
         {
             PhotonNetwork.JoinRoom(Const.ROOM_NAME);
-            //// 部屋作成に失敗
-            //var dialogService = gameObject.GetComponent<DialogService>();           
-            //dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE, DialogMessage.ERR_MSG_CREATE_ROOM_FAILED);
         }
 
         /// <summary>
@@ -236,17 +233,21 @@ namespace Assets.Services
         /// </summary>
         public void OnBtnReadyClicked(string userId)
         {
+            var hashKeyReadyPlayer = $"isReadyPlayer" + userId;
+            var isReadyPlayer = Convert.ToBoolean(PhotonNetwork.CurrentRoom.CustomProperties[hashKeyReadyPlayer] ?? false);
             var properties = new Hashtable
             {
                 { "btnReadyClickedPlayer", userId },
+                { hashKeyReadyPlayer, !isReadyPlayer },
             };
 
-            PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
+            PhotonNetwork.CurrentRoom.SetCustomProperties(properties);
 
         }
 
-        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable hashTable)
+        public override void OnRoomPropertiesUpdate(Hashtable hashTable)
         {
+            if (hashTable.Count() == 1) return;
             string userId = hashTable["btnReadyClickedPlayer"].ToString();
 
             // 自分が何番目にいるかを確認して、赤枠表示
@@ -281,6 +282,12 @@ namespace Assets.Services
         public void OnBtnLeaveClicked(string userId)
         {
             _userId = userId;
+            var hashKeyReadyPlayer = $"isReadyPlayer" + userId;
+            var properties = new Hashtable
+            {
+                { hashKeyReadyPlayer,false },
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(properties);
             PhotonNetwork.LeaveRoom();
         }
 
