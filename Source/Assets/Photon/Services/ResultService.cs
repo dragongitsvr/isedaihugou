@@ -191,13 +191,13 @@ namespace Assets.Services
                     GameObject childObject = firstRow.transform.GetChild(j).gameObject;
 
                     // 1行目の座標を取得し、1行目以降の行の高さを設定
-                    var pos = firstRow.transform.GetChild(j).gameObject.GetComponent<RectTransform>().position;
+                    var pos = firstRow.transform.GetChild(j).gameObject.GetComponent<RectTransform>().anchoredPosition;
                     pos.y -= Const.RESULT_BETWEEN_LINES_HEIGHT * i;
 
                     // 子オブジェクトのコピーをSampleの子オブジェクトとして生成(位置や大きさは上で設定した任意のオブジェクトに依存）
                     GameObject childObjectClone = Instantiate(childObject);
                     childObjectClone.GetComponent<RectTransform>().position = pos;
-                    childObjectClone.transform.SetParent(addRowGameObjects[i - 1].transform);
+                    childObjectClone.transform.SetParent(addRowGameObjects[i - 1].transform,false);
 
                 }
 
