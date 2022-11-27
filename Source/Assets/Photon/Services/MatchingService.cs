@@ -1,5 +1,6 @@
 ﻿using Assets.Photon.Argencies;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using ExitGames.Client.Photon;
 using ExitGames.Client.Photon.StructWrapping;
 using Photon.Commons;
@@ -9,9 +10,11 @@ using Photon.Pun.Demo.PunBasics;
 using Photon.Realtime;
 using Photon.Services;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -235,7 +238,7 @@ namespace Assets.Services
         {
             var hashKeyReadyPlayer = $"isReadyPlayer" + userId;
             var isReadyPlayer = Convert.ToBoolean(PhotonNetwork.CurrentRoom.CustomProperties[hashKeyReadyPlayer] ?? false);
-            var properties = new Hashtable
+            var properties = new ExitGames.Client.Photon.Hashtable
             {
                 { "btnReadyClickedPlayer", userId },
                 { hashKeyReadyPlayer, !isReadyPlayer },
@@ -245,7 +248,7 @@ namespace Assets.Services
 
         }
 
-        public override void OnRoomPropertiesUpdate(Hashtable hashTable)
+        public override void OnRoomPropertiesUpdate(ExitGames.Client.Photon.Hashtable hashTable)
         {
             if (hashTable.Count() == 1) return;
             string userId = hashTable["btnReadyClickedPlayer"].ToString();
@@ -283,12 +286,45 @@ namespace Assets.Services
         {
             _userId = userId;
             var hashKeyReadyPlayer = $"isReadyPlayer" + userId;
-            var properties = new Hashtable
+            var properties = new ExitGames.Client.Photon.Hashtable
             {
                 { hashKeyReadyPlayer,false },
             };
             PhotonNetwork.CurrentRoom.SetCustomProperties(properties);
             PhotonNetwork.LeaveRoom();
+        }
+
+        public void Update()
+        {
+            if (PhotonNetwork.CurrentRoom == null) return;
+            var hashTables = PhotonNetwork.CurrentRoom.CustomProperties;
+            var readyCount = 0;
+            foreach (var hash in hashTables) 
+            {
+                if (hash.Key.ToString().Contains("isReadyPlayer"))
+                {
+                    if (Convert.ToBoolean(hash.Value))
+                    {
+                        readyCount++;
+                    }
+                }
+            }
+
+            // 4人全員が準備完了状態になった場合
+            if (readyCount == Const.MAX_PLAYERES)
+            {
+                StartCoroutine(nameof(LoadFight));//コルーチンを実行
+            }
+        }
+
+        /// <summary>
+        /// 3秒後に対戦画面に遷移
+        /// </summary>
+        /// <returns></returns>
+        IEnumerator LoadFight()
+        {
+            yield return new WaitForSeconds(3.0f);
+            SceneManager.LoadScene("Fight");
         }
 
     }
