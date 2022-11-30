@@ -6,6 +6,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using ExitGames.Client.Photon;
 using System.Collections.Generic;
+using Assets.Photon.Dtos;
+using Photon.Commons;
+using static UnityEngine.UI.Image;
+using Newtonsoft.Json;
+using UnityEditor;
 
 namespace Assets.Services
 {
@@ -22,10 +27,22 @@ namespace Assets.Services
         [SerializeField] Button _btnPull;
         [SerializeField] Button _btnPass;
         [SerializeField] Button _btnSend;
+        [SerializeField] Text _lblRemainingNumber;
+        [SerializeField] RawImage _myFirstCard;
+        [SerializeField] RawImage _secondBackCard;
+        [SerializeField] RawImage _thirdBackCard;
+        [SerializeField] RawImage _fourthBackCard;
+        [SerializeField] GameObject _firstPlayerHand;
+        [SerializeField] GameObject _secondPlayerHand;
+        [SerializeField] GameObject _thirdPlayerHand;
+        [SerializeField] GameObject _fourthPlayerHand;
 
         // カスタムプロパティの変数名
         private readonly string _isCompletedDecideOrder = "isCompletedDecideOrder";
         private readonly string _playerNames = "playerNames";
+        private readonly string _isCompletedDecideFirstHand = "isCompletedDecideFirstHand";
+        private readonly string _playerHand = "playerHand";
+        private readonly string _deckCards = "deckCards";
 
         public async UniTask Init()
         {
@@ -44,7 +61,17 @@ namespace Assets.Services
             // プレイヤー名の表示
             ShowPlayerInfo();
 
+            // 同期させるためマスタークライアントが諸々決める
+            if (PhotonNetwork.IsMasterClient)
+            {
+                // 初期手札決め
+                DecideFirstHand();
+            }
 
+            await new WaitUntil(() => IsCompletedDecideHand());
+
+            // カードの表示
+            ShowCards();
 
         }
         
@@ -95,11 +122,31 @@ namespace Assets.Services
         }
 
         /// <summary>
+        /// 初期手札決めが完了したかどうかの確認
+        /// </summary>
+        /// <returns></returns>
+        private bool IsCompletedDecideHand()
+        {
+            var customProperties = PhotonNetwork.CurrentRoom.CustomProperties;
+
+            // キーの存在チェック
+            if (customProperties.TryGetValue(_isCompletedDecideFirstHand, out var outValue))
+            {
+                return Convert.ToBoolean(outValue);
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        /// <summary>
         /// プレイヤー情報の表示
         /// </summary>
         private void ShowPlayerInfo()
         {
-            // カスタムプロパティから順番を取得
+            // カスタムプロパティから名前を取得
             var playerNames = ((string[])PhotonNetwork.CurrentRoom.CustomProperties[_playerNames]).ToList();
             var tmpRemainPlayerNames = new List<string>(playerNames);
 
@@ -179,6 +226,196 @@ namespace Assets.Services
                     break;
                 }
             }
+
+        }
+
+        /// <summary>
+        /// 初期手札決め
+        /// </summary>
+        private void DecideFirstHand()
+        {
+            // カードを作成
+            var cards = MakeCards();
+
+            // シャッフル
+            var shuffledCards = cards.OrderBy(x => Guid.NewGuid()).ToList();
+
+            // カスタムプロパティからプレイヤー名を取得
+            var playerNames = ((string[])PhotonNetwork.CurrentRoom.CustomProperties[_playerNames]).ToList();
+
+            // 各プレイヤーの初期手札を決める
+            var nowCardsNum = 0;
+            var hashTable = new Hashtable();
+            foreach(var playerName in playerNames)
+            {
+                var playerHands = new List<CardDto>();
+                for (var i = 0;i < Const.FIRST_HAND_NUMBER; i++)
+                {
+                    playerHands.Add(shuffledCards[nowCardsNum]);
+                    nowCardsNum++;
+                }
+                hashTable.Add($"{_playerHand}{playerName}", JsonConvert.SerializeObject(playerHands));
+            }
+            var deckCards = shuffledCards.GetRange(playerNames.Count() * Const.FIRST_HAND_NUMBER,
+                shuffledCards.Count() - playerNames.Count() * Const.FIRST_HAND_NUMBER);
+            hashTable.Add(_deckCards, JsonConvert.SerializeObject(deckCards));
+            hashTable.Add(_isCompletedDecideFirstHand, true);
+            PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
+
+        }
+
+        /// <summary>
+        /// カード情報の作成
+        /// </summary>
+        /// <returns></returns>
+        private List<CardDto> MakeCards()
+        {
+            var cards = new List<CardDto>();
+
+            var cardMarks = new List<string>()
+            {
+                Const.CARD_MARK_SPADE
+                , Const.CARD_MARK_CLUB
+                , Const.CARD_MARK_DIAMOND
+                , Const.CARD_MARK_HEART
+            };
+
+            var cardId = 1;
+            for(var i = 0;i < cardMarks.Count(); i++)
+            {
+                for(var j = 3;j <= 15; j++)
+                {
+                    // 数字の1と2は13を引く
+                    var number = j;
+                    if(j >= 14)
+                    {
+                        number = j - 13;
+                    }
+                    var card = new CardDto()
+                    {
+                        Id = cardId
+                        , IsJoker = false
+                        , Mark = cardMarks[i]
+                        , Number = number
+                    };
+                    cards.Add(card);
+                    cardId++;
+                }
+            }
+
+            // ジョーカーを作成
+            for(var i = 0;i < Const.JOKER_NUMBER; i++)
+            {
+                var card = new CardDto()
+                {
+                    Id = cardId
+                    , IsJoker = true
+                };
+                cards.Add(card);
+            }
+
+            return cards;
+
+        }
+
+        private void ShowCards()
+        {
+            // カード情報を取得
+            var myName = PhotonNetwork.NickName;
+            var deckCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[_deckCards].ToString());
+            var handCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{_playerHand }{myName}"].ToString());
+
+            // 残り枚数を表示
+            _lblRemainingNumber.text = $"残り枚数：{ deckCards.Count }";
+
+            // 並び替え
+            var orderByIdHandCards = handCards.OrderBy(x => x.Id).ToList();
+
+            // 自分の手札を表示
+            var i = 0;
+            var jokerCnt = 0;
+            foreach(var orderByIdHandCard in orderByIdHandCards)
+            {
+                var cardName = $"{orderByIdHandCard.Mark}{orderByIdHandCard.Number:00}";
+                // ジョーカーの場合
+                if (orderByIdHandCard.IsJoker)
+                {
+                    if(jokerCnt == 0)
+                    {
+                        cardName = "Joker_Color";
+                        jokerCnt++;
+                    }
+                    else if (jokerCnt == 1)
+                    {
+                        cardName = "Joker_Monochrome";
+                    }
+
+                }
+
+                // 1枚目は画像の変更のみ
+                if(i == 0)
+                {
+                    _myFirstCard.enabled = true;
+                    // TODO:定数化
+                    _myFirstCard.texture = Resources.Load<Texture2D> ($"Images/Cards/{ cardName }");
+                    _myFirstCard.name = cardName;
+                    i++;
+                    continue;
+                }
+
+                // 2枚目以降は複製
+                var clone = Instantiate(_myFirstCard.transform.gameObject);
+                // TODO:定数化
+                clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"Images/Cards/{ cardName }");
+                clone.GetComponent<RawImage>().name = cardName;
+                clone.transform.SetParent(_firstPlayerHand.transform,false);
+
+                i++;
+            }
+
+            // 相手の手札を表示
+            var lblPlayerNames = new List<Text>()
+            {
+                _lblFirstPlayerName
+                , _lblSecondPlayerName
+                , _lblThirdPlayerName
+                , _lblFourthPlayerName
+            };
+
+            var backCards = new List<RawImage>()
+            {
+                _secondBackCard
+                , _thirdBackCard
+                , _fourthBackCard
+            };
+
+            var playerBackHands = new List<GameObject>()
+            {
+                _secondPlayerHand
+                , _thirdPlayerHand
+                , _fourthPlayerHand
+            };
+
+            i = 0;
+            foreach(var lblPlayerName in lblPlayerNames)
+            {
+                // 自分の手札は何もしない
+                if(lblPlayerName.text == myName)
+                {
+                    continue;
+                }
+                var playerHands = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{_playerHand}{lblPlayerName.text}"].ToString());
+
+                foreach(var playerHand in playerHands)
+                {
+                    backCards[i].enabled = true;
+                    var clone = Instantiate(backCards[i].transform.gameObject);
+                    clone.transform.SetParent(playerBackHands[i].transform, false);
+                }
+                i++;
+
+            }
+
 
         }
 

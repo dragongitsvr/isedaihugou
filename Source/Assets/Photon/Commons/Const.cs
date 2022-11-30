@@ -54,6 +54,18 @@ namespace Photon.Commons
         public static readonly int RESULT_COLUMN_INDEX_STAIRS_NUM = 11;
         public static readonly int RESULT_COLUMN_INDEX_REVOLUTION_NUM = 12;
 
+        // トランプのマーク
+        public static readonly string CARD_MARK_SPADE = "Spade";
+        public static readonly string CARD_MARK_CLUB = "Club";
+        public static readonly string CARD_MARK_DIAMOND = "Diamond";
+        public static readonly string CARD_MARK_HEART = "Heart";
+
+        // 初期手札枚数
+        public static readonly int FIRST_HAND_NUMBER = 7;
+
+        // ジョーカーの枚数
+        public static readonly int JOKER_NUMBER = 2;
+
     }
 
 }
