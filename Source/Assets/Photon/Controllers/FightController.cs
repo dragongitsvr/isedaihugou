@@ -14,13 +14,20 @@ public class FightController : MonoBehaviour
     /// <summary>
     /// 初期処理
     /// </summary>
-    public void Start()
+    async void Start()
     {
+        var loadingService = gameObject.GetComponent<LoadingService>();
+
         try
         {
+            loadingService.ShowLoading();
+
             // インスタンス※MonoBehaviourを継承している場合は、new禁止
             var fightService = gameObject.GetComponent<FightService>();
-            fightService.Init();
+            await fightService.Init();
+
+            loadingService.CloseLoading();
+
         }
         catch (Exception e)
         {

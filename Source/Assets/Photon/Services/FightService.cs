@@ -27,7 +27,7 @@ namespace Assets.Services
         private readonly string _isCompletedDecideOrder = "isCompletedDecideOrder";
         private readonly string _playerNames = "playerNames";
 
-        public async void Init()
+        public async UniTask Init()
         {
             var myName = PhotonNetwork.NickName;
 
