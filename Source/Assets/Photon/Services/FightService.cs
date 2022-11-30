@@ -15,6 +15,13 @@ namespace Assets.Services
         [SerializeField] Text _lblSecondPlayerName;
         [SerializeField] Text _lblThirdPlayerName;
         [SerializeField] Text _lblFourthPlayerName;
+        [SerializeField] Image _imgFirstPlayerFrame;
+        [SerializeField] Image _imgSecondPlayerFrame;
+        [SerializeField] Image _imgThirdPlayerFrame;
+        [SerializeField] Image _imgFourthPlayerFrame;
+        [SerializeField] Button _btnPull;
+        [SerializeField] Button _btnPass;
+        [SerializeField] Button _btnSend;
 
         // カスタムプロパティの変数名
         private readonly string _isCompletedDecideOrder = "isCompletedDecideOrder";
@@ -35,7 +42,7 @@ namespace Assets.Services
             await new WaitUntil(() => IsCompletedDecideOrder());
 
             // プレイヤー名の表示
-            ShowPlayerName();
+            ShowPlayerInfo();
 
 
 
@@ -88,9 +95,9 @@ namespace Assets.Services
         }
 
         /// <summary>
-        /// プレイヤー名の表示
+        /// プレイヤー情報の表示
         /// </summary>
-        private void ShowPlayerName()
+        private void ShowPlayerInfo()
         {
             // カスタムプロパティから順番を取得
             var playerNames = ((string[])PhotonNetwork.CurrentRoom.CustomProperties[_playerNames]).ToList();
@@ -112,6 +119,20 @@ namespace Assets.Services
                 , _lblSecondPlayerName
                 , _lblThirdPlayerName
                 , _lblFourthPlayerName
+            };
+
+            var imgPlayerFrames = new List<Image>()
+            {
+                _imgFirstPlayerFrame
+                ,_imgSecondPlayerFrame
+                ,_imgThirdPlayerFrame
+                ,_imgFourthPlayerFrame
+            };
+
+            var btns = new List<Button>()
+            {
+                _btnPull
+                , _btnSend
             };
 
             var isFirstPlayer = true;
@@ -141,6 +162,22 @@ namespace Assets.Services
             {
                 lblPlayerNames[playerStartOrder].text = tmpRemainPlayerNames[i];
                 playerStartOrder++;
+            }
+
+            // 最初のプレイヤーのみ「引く」「出す」ボタンを活性化
+            if (lblPlayerNames[0].text == playerNames[0])
+            {
+                btns.ForEach(x => x.interactable = true);
+            }
+
+            // 赤枠の設定
+            for(var i = 0;i < lblPlayerNames.Count(); i++)
+            {
+                if (lblPlayerNames[i].text == playerNames[0])
+                {
+                    imgPlayerFrames[i].enabled = true;
+                    break;
+                }
             }
 
         }
