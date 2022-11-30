@@ -32,7 +32,7 @@ namespace Assets.Photon.Controllers
 
                 // インスタンス※MonoBehaviourを継承している場合は、new禁止
                 var resultService = gameObject.GetComponent<ResultService>();
-                await resultService.Init(userId); ;
+                await resultService.Init(userId);
 
                 loadingService.CloseLoading();
 
