@@ -511,6 +511,8 @@ namespace Assets.Services
             clone.transform.SetParent(_firstPlayerHand.transform, false);
             clone.transform.SetSiblingIndex(putCardIdx);
 
+            _lblRemainingNumber.text = $"{ Const.RESULT_LBL_REMAINING_NUMBER }{ deckCards.Count }";
+
             var hashTable = new ExitGames.Client.Photon.Hashtable
             {
                 { _deckCards, JsonConvert.SerializeObject(deckCards) }
