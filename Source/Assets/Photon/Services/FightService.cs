@@ -326,7 +326,7 @@ namespace Assets.Services
             var handCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{_playerHand }{myName}"].ToString());
 
             // 残り枚数を表示
-            _lblRemainingNumber.text = $"残り枚数：{ deckCards.Count }";
+            _lblRemainingNumber.text = $"{ Const.RESULT_LBL_REMAINING_NUMBER }{ deckCards.Count }";
 
             // 並び替え
             var orderByIdHandCards = handCards.OrderBy(x => x.Id).ToList();
@@ -356,8 +356,7 @@ namespace Assets.Services
                 if(i == 0)
                 {
                     _myFirstCard.enabled = true;
-                    // TODO:定数化
-                    _myFirstCard.texture = Resources.Load<Texture2D> ($"Images/Cards/{ cardName }");
+                    _myFirstCard.texture = Resources.Load<Texture2D> ($"{ Const.CARD_IMG_PASS }{ cardName }");
                     _myFirstCard.name = cardName;
                     i++;
                     continue;
@@ -365,8 +364,7 @@ namespace Assets.Services
 
                 // 2枚目以降は複製
                 var clone = Instantiate(_myFirstCard.transform.gameObject);
-                // TODO:定数化
-                clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"Images/Cards/{ cardName }");
+                clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"{ Const.CARD_IMG_PASS }{ cardName }");
                 clone.GetComponent<RawImage>().name = cardName;
                 clone.transform.SetParent(_firstPlayerHand.transform,false);
 

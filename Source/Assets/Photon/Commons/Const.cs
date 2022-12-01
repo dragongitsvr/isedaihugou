@@ -66,6 +66,12 @@ namespace Photon.Commons
         // ジョーカーの枚数
         public static readonly int JOKER_NUMBER = 2;
 
+        // 「結果」画面の残り枚数
+        public static readonly string RESULT_LBL_REMAINING_NUMBER = "残り枚数：";
+
+        // トランプの画像パス
+        public static readonly string CARD_IMG_PASS = "Images/Cards/";
+
     }
 
 }
