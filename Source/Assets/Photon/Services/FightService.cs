@@ -4,13 +4,12 @@ using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using ExitGames.Client.Photon;
 using System.Collections.Generic;
 using Assets.Photon.Dtos;
 using Photon.Commons;
 using Newtonsoft.Json;
-using UnityEngine.EventSystems;
-using System.Collections;
+using System.Xml.Linq;
+using Photon.Realtime;
 
 namespace Assets.Services
 {
@@ -82,8 +81,17 @@ namespace Assets.Services
         /// </summary>
         private void DecideOrder()
         {
-            // プレイヤーをシャッフル
-            var playerList = PhotonNetwork.PlayerList.OrderBy(x => Guid.NewGuid()).ToList();
+            var playerList = new List<Player>();
+            if (Const.IS_TEST)
+            {
+                // プレイヤーをシャッフル(テスト)
+                playerList = PhotonNetwork.PlayerList.ToList();
+            }
+            else
+            {
+                // プレイヤーをシャッフル(本番)
+                playerList = PhotonNetwork.PlayerList.OrderBy(x => Guid.NewGuid()).ToList();
+            }
 
             var playerNames = new List<string>();
             for(var i = 0; i < playerList.Count(); i++)
@@ -315,6 +323,7 @@ namespace Assets.Services
                     , IsJoker = true
                 };
                 cards.Add(card);
+                cardId++;
             }
 
             return cards;
@@ -336,23 +345,13 @@ namespace Assets.Services
 
             // 自分の手札を表示
             var i = 0;
-            var jokerCnt = 0;
             foreach(var orderByIdHandCard in orderByIdHandCards)
             {
                 var cardName = $"{orderByIdHandCard.Mark}{orderByIdHandCard.Number:00}";
                 // ジョーカーの場合
                 if (orderByIdHandCard.IsJoker)
                 {
-                    if(jokerCnt == 0)
-                    {
-                        cardName = "Joker_Color";
-                        jokerCnt++;
-                    }
-                    else if (jokerCnt == 1)
-                    {
-                        cardName = "Joker_Monochrome";
-                    }
-
+                    cardName = Const.JOKER_DICTIONARY.First(x => x.Key == orderByIdHandCard.Id).Value;
                 }
 
                 // 1枚目は画像の変更のみ
@@ -455,6 +454,68 @@ namespace Assets.Services
 
             var hashTable = new ExitGames.Client.Photon.Hashtable();
             hashTable.Add($"{_playerSendCards}{myName}", JsonConvert.SerializeObject(playerSendCards));
+            PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
+
+        }
+
+        /// <summary>
+        /// カードを引く時の処理
+        /// </summary>
+        public void OnBtnPullClicked()
+        {
+            // 山札のカード
+            var deckCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[_deckCards].ToString());
+
+            // 引くカード
+            var deckCard = deckCards.First();
+            deckCards.Remove(deckCard);
+
+            // 全てのカード
+            var allCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[_allCards].ToString());
+
+            // プレイヤーのカード
+            var myName = PhotonNetwork.NickName;
+            var handCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{ _playerHand }{ myName }"].ToString());
+            handCards.Add(deckCard);
+
+            // 引いたカードの置く場所決め
+            var deckCardId = deckCard.Id;
+            var putCardIdx = 0;
+            foreach (Transform childTransform in _firstPlayerHand.transform)
+            {
+                var name = childTransform.gameObject.name;
+                var handCardId = 0;
+                if (Const.JOKER_DICTIONARY.Any(x => x.Value.Contains(name)))
+                {
+                    handCardId = Const.JOKER_DICTIONARY.First(x => x.Value == name).Key;
+                }
+                else
+                {
+                    handCardId = allCards.First(x => $"{x.Mark}{x.Number.ToString("00")}" == childTransform.gameObject.name).Id;
+                }
+
+                if (handCardId < deckCardId)
+                {
+                    putCardIdx++;
+                }
+            }
+
+            var clone = Instantiate(_myFirstCard.transform.gameObject);
+            var cardName = $"{deckCard.Mark}{deckCard.Number.ToString("00")}";
+            if(deckCard.IsJoker)
+            {
+                cardName = Const.JOKER_DICTIONARY.First(x => x.Key == deckCardId).Value;
+            }
+            clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"{Const.CARD_IMG_PASS}{cardName}");
+            clone.GetComponent<RawImage>().name = cardName;
+            clone.transform.SetParent(_firstPlayerHand.transform, false);
+            clone.transform.SetSiblingIndex(putCardIdx);
+
+            var hashTable = new ExitGames.Client.Photon.Hashtable
+            {
+                { _deckCards, JsonConvert.SerializeObject(deckCards) }
+                , { $"{ _playerHand }{ myName }", JsonConvert.SerializeObject(handCards) }
+            };
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
         }

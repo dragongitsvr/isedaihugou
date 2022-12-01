@@ -72,6 +72,18 @@ namespace Photon.Commons
         // トランプの画像パス
         public static readonly string CARD_IMG_PASS = "Images/Cards/";
 
+        // JOKERの画像ファイル名
+        public static readonly string CARD_JOKER_IMG_FILE_NAME_COLOR = "Joker_Color";
+        public static readonly string CARD_JOKER_IMG_FILE_NAME_MONOCHROME = "Joker_Monochrome";
+        public static readonly Dictionary<int, string> JOKER_DICTIONARY = new()
+        {
+            {53, CARD_JOKER_IMG_FILE_NAME_COLOR},
+            {54, CARD_JOKER_IMG_FILE_NAME_MONOCHROME},
+        };
+
+        // テスト環境かどうか
+        public static readonly bool IS_TEST = true;
+
     }
 
 }
