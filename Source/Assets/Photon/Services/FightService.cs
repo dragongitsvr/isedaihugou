@@ -281,9 +281,9 @@ namespace Assets.Services
             };
 
             var cardId = 1;
-            for(var i = 0;i < cardMarks.Count(); i++)
+            for (var j = 3; j <= 15; j++)            
             {
-                for(var j = 3;j <= 15; j++)
+                for (var i = 0; i < cardMarks.Count(); i++)
                 {
                     // 数字の1と2は13を引く
                     var number = j;
