@@ -8,9 +8,7 @@ using ExitGames.Client.Photon;
 using System.Collections.Generic;
 using Assets.Photon.Dtos;
 using Photon.Commons;
-using static UnityEngine.UI.Image;
 using Newtonsoft.Json;
-using UnityEditor;
 
 namespace Assets.Services
 {
