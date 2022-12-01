@@ -44,6 +44,10 @@ namespace Assets.Services
         private readonly string _deckCards = "deckCards";
         private readonly string _playerSendCards = "playerSendCards";
         private readonly string _allCards = "allCards";
+        private readonly string _passCnt = "passCnt";
+        private readonly string _nowPlayer = "nowPlayer";
+        private readonly string _isFinished = "isFinished";
+        private readonly string _fieldCards = "fieldCards";
 
         public async UniTask Init()
         {
@@ -270,6 +274,8 @@ namespace Assets.Services
                 shuffledCards.Count() - playerNames.Count() * Const.FIRST_HAND_NUMBER);
             hashTable.Add(_allCards, JsonConvert.SerializeObject(cards));
             hashTable.Add(_deckCards, JsonConvert.SerializeObject(deckCards));
+            var fieldCards = new SortedList<int, List<CardDto>>();
+            hashTable.Add(_fieldCards, JsonConvert.SerializeObject(fieldCards));
             hashTable.Add(_isCompletedDecideFirstHand, true);
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
@@ -478,6 +484,14 @@ namespace Assets.Services
             var handCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{ _playerHand }{ myName }"].ToString());
             handCards.Add(deckCard);
 
+            // 場のカード
+            var fieldCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[_fieldCards].ToString());
+            if(fieldCards.Count() > 0)
+            {
+                // 場にカードが出ている場合のみ、「パス」ボタンが使用可能
+                _btnPass.interactable = true;
+            }
+
             // 引いたカードの置く場所決め
             var deckCardId = deckCard.Id;
             var putCardIdx = 0;
@@ -500,6 +514,7 @@ namespace Assets.Services
                 }
             }
 
+            // カードの複製＆並び位置を設定
             var clone = Instantiate(_myFirstCard.transform.gameObject);
             var cardName = $"{deckCard.Mark}{deckCard.Number.ToString("00")}";
             if(deckCard.IsJoker)
@@ -517,6 +532,50 @@ namespace Assets.Services
             {
                 { _deckCards, JsonConvert.SerializeObject(deckCards) }
                 , { $"{ _playerHand }{ myName }", JsonConvert.SerializeObject(handCards) }
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
+
+        }
+
+        /// <summary>
+        /// 「パス」ボタン押下時の処理
+        /// </summary>
+        public void OnBtnPassClicked()
+        {
+            var customProperties = PhotonNetwork.CurrentRoom.CustomProperties;
+
+            // 現在のパス回数を取得
+            var passCnt = Int32.Parse(customProperties[_passCnt].ToString());
+
+            // 次のプレイヤーを決定
+            var lblPlayerNames = new List<Text>()
+            {
+                _lblSecondPlayerName
+                , _lblThirdPlayerName
+                , _lblFourthPlayerName
+            };
+            var nextPlayer = String.Empty;
+            foreach (var lblPlayerName in lblPlayerNames)
+            {
+                var isFinished = Convert.ToBoolean(customProperties[$"{_isFinished}{lblPlayerName}"].ToString());
+                if (isFinished)
+                {
+                    continue;
+                }
+                nextPlayer = lblPlayerName.text;
+                break;
+            }
+
+            // フレーム非表示＆ボタンの非活性
+            _imgFirstPlayerFrame.enabled = false;
+            _btnPass.interactable = false;
+            _btnPull.interactable =  false;
+            _btnSend.interactable = false;
+
+            var hashTable = new ExitGames.Client.Photon.Hashtable
+            {
+                { _nowPlayer,  nextPlayer }
+                , { _passCnt , passCnt++ }
             };
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 

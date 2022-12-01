@@ -54,4 +54,23 @@ public class FightController : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// 「パス」ボタン押下時の処理
+    /// </summary>
+    public void BtnPass_Clicked()
+    {
+        try
+        {
+            // インスタンス※MonoBehaviourを継承している場合は、new禁止
+            var fightService = gameObject.GetComponent<FightService>();
+            fightService.OnBtnPassClicked();
+
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.StackTrace);
+        }
+
+    }
+
 }
