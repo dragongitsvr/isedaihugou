@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using Assets.Photon.Dtos;
 using Photon.Commons;
 using Newtonsoft.Json;
+using UnityEngine.EventSystems;
+using System.Collections;
 
 namespace Assets.Services
 {
@@ -41,6 +43,8 @@ namespace Assets.Services
         private readonly string _isCompletedDecideFirstHand = "isCompletedDecideFirstHand";
         private readonly string _playerHand = "playerHand";
         private readonly string _deckCards = "deckCards";
+        private readonly string _playerSendCards = "playerSendCards";
+        private readonly string _allCards = "allCards";
 
         public async UniTask Init()
         {
@@ -89,7 +93,7 @@ namespace Assets.Services
 
             // カスタムプロパティ更新
             // リストはNGなので、配列に変更
-            var hashTable = new Hashtable()
+            var hashTable = new ExitGames.Client.Photon.Hashtable()
              {
                 {_playerNames, playerNames.ToArray()}
                 , {_isCompletedDecideOrder,true}
@@ -243,7 +247,7 @@ namespace Assets.Services
 
             // 各プレイヤーの初期手札を決める
             var nowCardsNum = 0;
-            var hashTable = new Hashtable();
+            var hashTable = new ExitGames.Client.Photon.Hashtable();
             foreach(var playerName in playerNames)
             {
                 var playerHands = new List<CardDto>();
@@ -256,6 +260,7 @@ namespace Assets.Services
             }
             var deckCards = shuffledCards.GetRange(playerNames.Count() * Const.FIRST_HAND_NUMBER,
                 shuffledCards.Count() - playerNames.Count() * Const.FIRST_HAND_NUMBER);
+            hashTable.Add(_allCards, JsonConvert.SerializeObject(cards));
             hashTable.Add(_deckCards, JsonConvert.SerializeObject(deckCards));
             hashTable.Add(_isCompletedDecideFirstHand, true);
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
@@ -416,8 +421,42 @@ namespace Assets.Services
         }
 
         // ルームプロパティが更新された時
-        public override void OnRoomPropertiesUpdate(Hashtable hashTable)
+        public override void OnRoomPropertiesUpdate(ExitGames.Client.Photon.Hashtable hashTable)
         {
+        }
+
+        /// <summary>
+        /// カードをクリックした時の処理
+        /// </summary>
+        public void OnCardClicked(RectTransform rectTransform)
+        {
+            var customProperties = PhotonNetwork.CurrentRoom.CustomProperties;
+            var playerSendCards = new List<CardDto>();
+            var myName = PhotonNetwork.NickName;
+            // キーの存在チェック
+            if (customProperties.TryGetValue($"{_playerSendCards}{myName}", out var outValue))
+            {
+                playerSendCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[$"{_playerSendCards}{myName}"].ToString());
+            }
+            var allCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[_allCards].ToString());
+
+            if(playerSendCards.Any(x => $"{x.Mark}{x.Id.ToString("00")}" == rectTransform.name))
+            {
+                // 既にクリックされている場合は元の位置に戻す
+                rectTransform.position -= new Vector3(0, 30f, 0);
+                playerSendCards.RemoveAll(x => $"{x.Mark}{x.Id.ToString("00")}" == rectTransform.name);
+            }
+            else
+            {
+                // まだクリックされていない場合は上に移動
+                rectTransform.position += new Vector3(0, 30f, 0);
+                playerSendCards.Add(allCards.First(x => $"{x.Mark}{x.Id.ToString("00")}" == rectTransform.name));
+            }
+
+            var hashTable = new ExitGames.Client.Photon.Hashtable();
+            hashTable.Add($"{_playerSendCards}{myName}", JsonConvert.SerializeObject(playerSendCards));
+            PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
+
         }
 
     }
