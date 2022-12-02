@@ -55,7 +55,7 @@ namespace Assets.Services
         private readonly string _fieldCards = "fieldCards";
         private readonly string _isCompletedInit = "isCompletedInit";
 
-        private enum _btnPullNextPlayer
+        private enum EnumBtnPullNextPlayer
         {
             _playerName
             , _deckCardCnt
@@ -609,7 +609,7 @@ namespace Assets.Services
                 CachingOption = EventCaching.AddToRoomCache,
             };
 
-            // PhotonNetwork.RaiseEvent(_moveNextPlayer, "Hello!", raiseEventOptions, SendOptions.SendReliable);
+            PhotonNetwork.RaiseEvent(_moveNextPlayer, "Hello!", raiseEventOptions, SendOptions.SendReliable);
 
         }
 
@@ -727,8 +727,8 @@ namespace Assets.Services
         /// </summary>
         private void OnBtnPullClickedOther(object[] customData)
         {
-            _lblRemainingNumber.text = $"{Const.RESULT_LBL_REMAINING_NUMBER}{customData[(int)_btnPullNextPlayer._deckCardCnt]}";
-            var pullPlayerName = customData[(int)_btnPullNextPlayer._playerName].ToString();
+            _lblRemainingNumber.text = $"{Const.RESULT_LBL_REMAINING_NUMBER}{customData[(int)EnumBtnPullNextPlayer._deckCardCnt]}";
+            var pullPlayerName = customData[(int)EnumBtnPullNextPlayer._playerName].ToString();
             var lblPlayerNames = new List<Text>()
             {
                 _lblSecondPlayerName
