@@ -55,8 +55,14 @@ namespace Assets.Services
         private readonly string _fieldCards = "fieldCards";
         private readonly string _isCompletedInit = "isCompletedInit";
 
+        private enum _btnPullNextPlayer
+        {
+            _playerName
+            , _deckCardCnt
+        };
+
         // イベント番号
-        private readonly byte _moveNextPlayer = 0;
+        private readonly byte _moveBtnPullNextPlayer = 0; // カードを引いた時の相手側の処理
 
         public async UniTask Init()
         {
@@ -111,7 +117,7 @@ namespace Assets.Services
             for (var i = 0; i < playerList.Count(); i++)
             {
                 playerNames.Add(playerList[i].NickName);
-                hashTable.Add($"{ _isFinished }{playerList[i].NickName}",false);
+                hashTable.Add($"{_isFinished}{playerList[i].NickName}", false);
             }
 
             // カスタムプロパティ更新
@@ -550,6 +556,20 @@ namespace Assets.Services
             };
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
+            var raiseEventOptions = new RaiseEventOptions
+            {
+                Receivers = ReceiverGroup.Others,
+                CachingOption = EventCaching.AddToRoomCache,
+            };
+
+            var objectDatas = new object[]
+            {
+                myName
+                , deckCards.Count
+            };
+
+            PhotonNetwork.RaiseEvent(_moveBtnPullNextPlayer, objectDatas, raiseEventOptions, SendOptions.SendReliable);
+
         }
 
         /// <summary>
@@ -584,7 +604,7 @@ namespace Assets.Services
                 CachingOption = EventCaching.AddToRoomCache,
             };
 
-            PhotonNetwork.RaiseEvent(_moveNextPlayer, "Hello!", raiseEventOptions, SendOptions.SendReliable);
+            // PhotonNetwork.RaiseEvent(_moveNextPlayer, "Hello!", raiseEventOptions, SendOptions.SendReliable);
 
         }
 
@@ -617,7 +637,7 @@ namespace Assets.Services
             };
 
             // TODO:制御
-            PhotonNetwork.RaiseEvent(_moveNextPlayer, "Hello!", raiseEventOptions, SendOptions.SendReliable);
+            //PhotonNetwork.RaiseEvent(_moveNextPlayer, "Hello!", raiseEventOptions, SendOptions.SendReliable);
 
         }
 
@@ -653,10 +673,10 @@ namespace Assets.Services
 
         public void OnEvent(EventData photonEvent)
         {
-            if (photonEvent.Code == _moveNextPlayer)
+            if (photonEvent.Code == _moveBtnPullNextPlayer)
             {
-                // 次のプレイヤーに移動したときの処理
-                MyTurn();
+                // 「引く」ボタン押下時の相手側の処理
+                OnBtnPullClickedOther((object[])photonEvent.CustomData);
             }
 
         }
@@ -680,7 +700,7 @@ namespace Assets.Services
         {
             PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
         }
-        
+
         /// <summary>
         /// カスタムプロパティが取得できるまで待機
         /// </summary>
@@ -689,7 +709,7 @@ namespace Assets.Services
         {
             var currentRoom = PhotonNetwork.CurrentRoom;
             var hashTable = new ExitGames.Client.Photon.Hashtable();
-            if(currentRoom == null)
+            if (currentRoom == null)
             {
                 await new WaitUntil(() => PhotonNetwork.CurrentRoom != null); ;
             }
@@ -697,6 +717,46 @@ namespace Assets.Services
 
         }
 
+        /// <summary>
+        /// 「引く」ボタン押下時の相手側の処理
+        /// </summary>
+        private void OnBtnPullClickedOther(object[] customData)
+        {
+            _lblRemainingNumber.text = $"{Const.RESULT_LBL_REMAINING_NUMBER}{customData[(int)_btnPullNextPlayer._deckCardCnt]}";
+            var pullPlayerName = customData[(int)_btnPullNextPlayer._playerName].ToString();
+            var lblPlayerNames = new List<Text>()
+            {
+                _lblSecondPlayerName
+                , _lblThirdPlayerName
+                , _lblFourthPlayerName
+            };
+
+            var backCards = new List<RawImage>()
+            {
+                _secondBackCard
+                , _thirdBackCard
+                , _fourthBackCard
+            };
+
+            var playerBackHands = new List<GameObject>()
+            {
+                _secondPlayerHand
+                , _thirdPlayerHand
+                , _fourthPlayerHand
+            };
+
+            // カードの複製
+            for(var i = 0;i < lblPlayerNames.Count(); i++)
+            {
+                if (lblPlayerNames[i].text == pullPlayerName)
+                {
+                    var clone = Instantiate(backCards[i].transform.gameObject);
+                    clone.transform.SetParent(playerBackHands[i].transform, false);
+                    break;
+                }
+            }
+
+        }
 
     }
 }
