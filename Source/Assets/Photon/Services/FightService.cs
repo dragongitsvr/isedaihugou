@@ -40,6 +40,7 @@ namespace Assets.Services
         [SerializeField] GameObject _secondPlayerHand;
         [SerializeField] GameObject _thirdPlayerHand;
         [SerializeField] GameObject _fourthPlayerHand;
+        [SerializeField] PhotonView _field;
 
         // カスタムプロパティの変数名
         private readonly string _isCompletedDecideOrder = "isCompletedDecideOrder";
@@ -60,9 +61,17 @@ namespace Assets.Services
             _playerName
             , _deckCardCnt
         };
+        private enum EnumBtnPassNextPlayer
+        {
+            _nextPlayer
+            , _passCnt
+            , _deckCardsCnt
+            , _isNotFinished
+        };
 
         // イベント番号
         private readonly byte _moveBtnPullNextPlayer = 0; // カードを引いた時の相手側の処理
+        private readonly byte _moveBtnPassNextPlayer = 1; // カードを引いた時の相手側の処理
 
         public async UniTask Init()
         {
@@ -237,6 +246,11 @@ namespace Assets.Services
             if (lblPlayerNames[0].text == playerNames[0])
             {
                 _btnPull.interactable = true;
+                if (Const.IS_TEST)
+                {
+                    // パスボタンの動作確認
+                    _btnPass.interactable = true;
+                }
             }
 
             // 赤枠の設定
@@ -285,6 +299,7 @@ namespace Assets.Services
             var fieldCards = new SortedList<int, List<CardDto>>();
             hashTable.Add(_fieldCards, JsonConvert.SerializeObject(fieldCards));
             hashTable.Add(_isCompletedDecideFirstHand, true);
+            hashTable.Add(_passCnt, 0);
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
         }
@@ -580,9 +595,10 @@ namespace Assets.Services
         /// <summary>
         /// 「パス」ボタン押下時の処理
         /// </summary>
-        public void OnBtnPassClicked()
+        public async void OnBtnPassClicked()
         {
-            var customProperties = PhotonNetwork.CurrentRoom.CustomProperties;
+            // カスタムプロパティが取得できるまで待機
+            var customProperties = await WaitUntilGetCustomProperties();
 
             // 現在のパス回数を取得
             var passCnt = Int32.Parse(customProperties[_passCnt].ToString());
@@ -590,11 +606,40 @@ namespace Assets.Services
             // 次のプレイヤーを決定
             var nextPlayer = GetNextPlayer(customProperties);
 
+            // 山札のカード
+            var deckCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[_deckCards].ToString());
+
+            // 自分を除く上がっていないプレイヤー数
+            var isNotFinishedPlayerCnt = GetIsNotFinishedCnt(customProperties);
+
             // フレーム非表示＆ボタンの非活性
             _imgFirstPlayerFrame.enabled = false;
             _btnPass.interactable = false;
             _btnPull.interactable = false;
             _btnSend.interactable = false;
+
+            // 赤枠の移動
+            var lblPlayerNames = new List<Text>()
+            {
+                _lblSecondPlayerName
+                , _lblThirdPlayerName
+                , _lblFourthPlayerName
+            };
+            var imgPlayerFrames = new List<Image>()
+            {
+                _imgSecondPlayerFrame
+                ,_imgThirdPlayerFrame
+                ,_imgFourthPlayerFrame
+            };
+
+            for(var i = 0;i < lblPlayerNames.Count; i++)
+            {
+                if (lblPlayerNames[i].text == nextPlayer)
+                {
+                    imgPlayerFrames[i].enabled = true;
+                    break;
+                }
+            }
 
             var hashTable = new ExitGames.Client.Photon.Hashtable
             {
@@ -609,7 +654,15 @@ namespace Assets.Services
                 CachingOption = EventCaching.AddToRoomCache,
             };
 
-            PhotonNetwork.RaiseEvent(_moveNextPlayer, "Hello!", raiseEventOptions, SendOptions.SendReliable);
+            var objectDatas = new object[]
+            {
+                nextPlayer
+                , passCnt
+                , deckCards.Count
+                , isNotFinishedPlayerCnt
+            };
+
+            PhotonNetwork.RaiseEvent(_moveBtnPassNextPlayer, objectDatas, raiseEventOptions, SendOptions.SendReliable);
 
         }
 
@@ -676,12 +729,46 @@ namespace Assets.Services
 
         }
 
+        /// <summary>
+        /// 上がっていないプレイヤー数を取得
+        /// </summary>
+        /// <param name="hashTable">カスタムプロパティ</param>
+        /// <returns>上がっていないプレイヤー数</returns>
+        private int GetIsNotFinishedCnt(ExitGames.Client.Photon.Hashtable hashTable)
+        {
+            // 次のプレイヤーを決定
+            var lblPlayerNames = new List<Text>()
+            {
+                _lblSecondPlayerName
+                , _lblThirdPlayerName
+                , _lblFourthPlayerName
+            };
+            var nextPlayer = String.Empty;
+            var playerCnt = 0;
+            foreach (var lblPlayerName in lblPlayerNames)
+            {
+                var isFinished = Convert.ToBoolean(hashTable[$"{_isFinished}{lblPlayerName.text}"].ToString());
+                if (!isFinished)
+                {
+                    playerCnt++;
+                }
+            }
+
+            return playerCnt;
+
+        }
+
         public void OnEvent(EventData photonEvent)
         {
             if (photonEvent.Code == _moveBtnPullNextPlayer)
             {
                 // 「引く」ボタン押下時の相手側の処理
                 OnBtnPullClickedOther((object[])photonEvent.CustomData);
+            }
+            else if (photonEvent.Code == _moveBtnPassNextPlayer)
+            {
+                // 「パス」ボタン押下時の相手側の処理
+                OnBtnPassClickedOther((object[])photonEvent.CustomData);
             }
 
         }
@@ -759,6 +846,59 @@ namespace Assets.Services
                     clone.transform.SetParent(playerBackHands[i].transform, false);
                     break;
                 }
+            }
+
+        }
+
+        /// <summary>
+        /// 「パス」ボタン押下時の相手側の処理
+        /// </summary>
+        private void OnBtnPassClickedOther(object[] customData)
+        {
+            var nextPlayer = customData[(int)EnumBtnPassNextPlayer._nextPlayer].ToString();
+            var passCnt = Int32.Parse(customData[(int)EnumBtnPassNextPlayer._passCnt].ToString());
+            var deckCardsCnt = Int32.Parse(customData[(int)EnumBtnPassNextPlayer._deckCardsCnt].ToString());
+            var isNotFinishedPlayerCnt = Int32.Parse(customData[(int)EnumBtnPassNextPlayer._isNotFinished].ToString());
+
+            var lblPlayerNames = new List<Text>()
+            {
+                _lblFirstPlayerName
+                , _lblSecondPlayerName
+                , _lblThirdPlayerName
+                , _lblFourthPlayerName
+            };
+
+            var imgPlayerFrames = new List<Image>()
+            {
+                _imgFirstPlayerFrame
+                ,_imgSecondPlayerFrame
+                ,_imgThirdPlayerFrame
+                ,_imgFourthPlayerFrame
+            };
+
+            // 枠の移動
+            for (var i = 0; i < lblPlayerNames.Count(); i++)
+            {
+                if (lblPlayerNames[i].text == nextPlayer)
+                {
+                    imgPlayerFrames[i].enabled = true;
+                    continue;
+                }
+                if (imgPlayerFrames[i].enabled)
+                {
+                    imgPlayerFrames[i].enabled = false;
+                }
+            }
+
+            // 自分の場合
+            if(nextPlayer == PhotonNetwork.NickName)
+            {
+                // 山札にカードが存在し、パスカウントが他のプレイヤーの数と等しくない
+                if(deckCardsCnt != 0 && passCnt != isNotFinishedPlayerCnt)
+                {
+                    _btnPull.interactable = true;
+                }
+
             }
 
         }
