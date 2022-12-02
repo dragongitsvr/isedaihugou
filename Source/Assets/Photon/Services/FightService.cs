@@ -426,6 +426,11 @@ namespace Assets.Services
 
                 foreach (var playerHand in playerHands)
                 {
+                    // 土台を用意しているので、最後は複製しない
+                    if (playerHands.Last().Equals(playerHand))
+                    {
+                        break;
+                    }
                     backCards[i].enabled = true;
                     var clone = Instantiate(backCards[i].transform.gameObject);
                     clone.transform.SetParent(playerBackHands[i].transform, false);
