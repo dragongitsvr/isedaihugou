@@ -10,6 +10,11 @@ using Photon.Commons;
 using Newtonsoft.Json;
 using System.Xml.Linq;
 using Photon.Realtime;
+using ExitGames.Client.Photon;
+using WDT;
+using System.Diagnostics;
+using UnityEditor;
+using System.Collections;
 
 namespace Assets.Services
 {
@@ -48,6 +53,10 @@ namespace Assets.Services
         private readonly string _nowPlayer = "nowPlayer";
         private readonly string _isFinished = "isFinished";
         private readonly string _fieldCards = "fieldCards";
+        private readonly string _isCompletedInit = "isCompletedInit";
+
+        // イベント番号
+        private readonly byte _moveNextPlayer = 0;
 
         public async UniTask Init()
         {
@@ -79,7 +88,7 @@ namespace Assets.Services
             ShowCards();
 
         }
-        
+
         /// <summary>
         /// 順番を決める
         /// </summary>
@@ -98,18 +107,17 @@ namespace Assets.Services
             }
 
             var playerNames = new List<string>();
-            for(var i = 0; i < playerList.Count(); i++)
+            var hashTable = new ExitGames.Client.Photon.Hashtable();
+            for (var i = 0; i < playerList.Count(); i++)
             {
                 playerNames.Add(playerList[i].NickName);
+                hashTable.Add($"{ _isFinished }{playerList[i].NickName}",false);
             }
 
             // カスタムプロパティ更新
             // リストはNGなので、配列に変更
-            var hashTable = new ExitGames.Client.Photon.Hashtable()
-             {
-                {_playerNames, playerNames.ToArray()}
-                , {_isCompletedDecideOrder,true}
-             };
+            hashTable.Add(_playerNames, playerNames.ToArray());
+            hashTable.Add(_isCompletedDecideOrder, true);
 
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
@@ -190,16 +198,10 @@ namespace Assets.Services
                 ,_imgFourthPlayerFrame
             };
 
-            var btns = new List<Button>()
-            {
-                _btnPull
-                , _btnSend
-            };
-
             var isFirstPlayer = true;
             var playerStartOrder = 0;
             // プレイヤー名を正面から順番に表示していく。
-            for(var i = 0;i < playerNames.Count(); i++)
+            for (var i = 0; i < playerNames.Count(); i++)
             {
                 if (isFirstPlayer && playerNames[i] == myName)
                 {
@@ -219,20 +221,20 @@ namespace Assets.Services
             }
 
             // 残ったプレイヤー名も同様に正面から表示していく。
-            for(var i = 0;i < tmpRemainPlayerNames.Count(); i++)
+            for (var i = 0; i < tmpRemainPlayerNames.Count(); i++)
             {
                 lblPlayerNames[playerStartOrder].text = tmpRemainPlayerNames[i];
                 playerStartOrder++;
             }
 
-            // 最初のプレイヤーのみ「引く」「出す」ボタンを活性化
+            // 最初のプレイヤーのみ「引く」ボタンを活性化
             if (lblPlayerNames[0].text == playerNames[0])
             {
-                btns.ForEach(x => x.interactable = true);
+                _btnPull.interactable = true;
             }
 
             // 赤枠の設定
-            for(var i = 0;i < lblPlayerNames.Count(); i++)
+            for (var i = 0; i < lblPlayerNames.Count(); i++)
             {
                 if (lblPlayerNames[i].text == playerNames[0])
                 {
@@ -260,10 +262,10 @@ namespace Assets.Services
             // 各プレイヤーの初期手札を決める
             var nowCardsNum = 0;
             var hashTable = new ExitGames.Client.Photon.Hashtable();
-            foreach(var playerName in playerNames)
+            foreach (var playerName in playerNames)
             {
                 var playerHands = new List<CardDto>();
-                for (var i = 0;i < Const.FIRST_HAND_NUMBER; i++)
+                for (var i = 0; i < Const.FIRST_HAND_NUMBER; i++)
                 {
                     playerHands.Add(shuffledCards[nowCardsNum]);
                     nowCardsNum++;
@@ -298,22 +300,25 @@ namespace Assets.Services
             };
 
             var cardId = 1;
-            for (var j = 3; j <= 15; j++)            
+            for (var j = 3; j <= 15; j++)
             {
                 for (var i = 0; i < cardMarks.Count(); i++)
                 {
                     // 数字の1と2は13を引く
                     var number = j;
-                    if(j >= 14)
+                    if (j >= 14)
                     {
                         number = j - 13;
                     }
                     var card = new CardDto()
                     {
                         Id = cardId
-                        , IsJoker = false
-                        , Mark = cardMarks[i]
-                        , Number = number
+                        ,
+                        IsJoker = false
+                        ,
+                        Mark = cardMarks[i]
+                        ,
+                        Number = number
                     };
                     cards.Add(card);
                     cardId++;
@@ -321,12 +326,13 @@ namespace Assets.Services
             }
 
             // ジョーカーを作成
-            for(var i = 0;i < Const.JOKER_NUMBER; i++)
+            for (var i = 0; i < Const.JOKER_NUMBER; i++)
             {
                 var card = new CardDto()
                 {
                     Id = cardId
-                    , IsJoker = true
+                    ,
+                    IsJoker = true
                 };
                 cards.Add(card);
                 cardId++;
@@ -341,17 +347,17 @@ namespace Assets.Services
             // カード情報を取得
             var myName = PhotonNetwork.NickName;
             var deckCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[_deckCards].ToString());
-            var handCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{_playerHand }{myName}"].ToString());
+            var handCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{_playerHand}{myName}"].ToString());
 
             // 残り枚数を表示
-            _lblRemainingNumber.text = $"{ Const.RESULT_LBL_REMAINING_NUMBER }{ deckCards.Count }";
+            _lblRemainingNumber.text = $"{Const.RESULT_LBL_REMAINING_NUMBER}{deckCards.Count}";
 
             // 並び替え
             var orderByIdHandCards = handCards.OrderBy(x => x.Id).ToList();
 
             // 自分の手札を表示
             var i = 0;
-            foreach(var orderByIdHandCard in orderByIdHandCards)
+            foreach (var orderByIdHandCard in orderByIdHandCards)
             {
                 var cardName = $"{orderByIdHandCard.Mark}{orderByIdHandCard.Number:00}";
                 // ジョーカーの場合
@@ -361,10 +367,10 @@ namespace Assets.Services
                 }
 
                 // 1枚目は画像の変更のみ
-                if(i == 0)
+                if (i == 0)
                 {
                     _myFirstCard.enabled = true;
-                    _myFirstCard.texture = Resources.Load<Texture2D> ($"{ Const.CARD_IMG_PASS }{ cardName }");
+                    _myFirstCard.texture = Resources.Load<Texture2D>($"{Const.CARD_IMG_PASS}{cardName}");
                     _myFirstCard.name = cardName;
                     i++;
                     continue;
@@ -372,9 +378,9 @@ namespace Assets.Services
 
                 // 2枚目以降は複製
                 var clone = Instantiate(_myFirstCard.transform.gameObject);
-                clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"{ Const.CARD_IMG_PASS }{ cardName }");
+                clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"{Const.CARD_IMG_PASS}{cardName}");
                 clone.GetComponent<RawImage>().name = cardName;
-                clone.transform.SetParent(_firstPlayerHand.transform,false);
+                clone.transform.SetParent(_firstPlayerHand.transform, false);
 
                 i++;
             }
@@ -403,16 +409,16 @@ namespace Assets.Services
             };
 
             i = 0;
-            foreach(var lblPlayerName in lblPlayerNames)
+            foreach (var lblPlayerName in lblPlayerNames)
             {
                 // 自分の手札は何もしない
-                if(lblPlayerName.text == myName)
+                if (lblPlayerName.text == myName)
                 {
                     continue;
                 }
                 var playerHands = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{_playerHand}{lblPlayerName.text}"].ToString());
 
-                foreach(var playerHand in playerHands)
+                foreach (var playerHand in playerHands)
                 {
                     backCards[i].enabled = true;
                     var clone = Instantiate(backCards[i].transform.gameObject);
@@ -422,6 +428,11 @@ namespace Assets.Services
 
             }
 
+            var hashTable = new ExitGames.Client.Photon.Hashtable()
+            {
+                { _isCompletedInit ,true }
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
         }
 
@@ -445,7 +456,7 @@ namespace Assets.Services
             }
             var allCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[_allCards].ToString());
 
-            if(playerSendCards.Any(x => $"{x.Mark}{x.Id.ToString("00")}" == rectTransform.name))
+            if (playerSendCards.Any(x => $"{x.Mark}{x.Id.ToString("00")}" == rectTransform.name))
             {
                 // 既にクリックされている場合は元の位置に戻す
                 rectTransform.position -= new Vector3(0, 30f, 0);
@@ -467,8 +478,11 @@ namespace Assets.Services
         /// <summary>
         /// カードを引く時の処理
         /// </summary>
-        public void OnBtnPullClicked()
+        public async void OnBtnPullClicked()
         {
+            // カスタムプロパティが取得できるまで待機
+            await WaitUntilGetCustomProperties();
+
             // 山札のカード
             var deckCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[_deckCards].ToString());
 
@@ -481,12 +495,12 @@ namespace Assets.Services
 
             // プレイヤーのカード
             var myName = PhotonNetwork.NickName;
-            var handCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{ _playerHand }{ myName }"].ToString());
+            var handCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{_playerHand}{myName}"].ToString());
             handCards.Add(deckCard);
 
             // 場のカード
-            var fieldCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[_fieldCards].ToString());
-            if(fieldCards.Count() > 0)
+            var fieldCards = JsonConvert.DeserializeObject<SortedList<int, List<CardDto>>>(PhotonNetwork.CurrentRoom.CustomProperties[_fieldCards].ToString());
+            if (fieldCards.Count() > 0)
             {
                 // 場にカードが出ている場合のみ、「パス」ボタンが使用可能
                 _btnPass.interactable = true;
@@ -517,7 +531,7 @@ namespace Assets.Services
             // カードの複製＆並び位置を設定
             var clone = Instantiate(_myFirstCard.transform.gameObject);
             var cardName = $"{deckCard.Mark}{deckCard.Number.ToString("00")}";
-            if(deckCard.IsJoker)
+            if (deckCard.IsJoker)
             {
                 cardName = Const.JOKER_DICTIONARY.First(x => x.Key == deckCardId).Value;
             }
@@ -526,7 +540,8 @@ namespace Assets.Services
             clone.transform.SetParent(_firstPlayerHand.transform, false);
             clone.transform.SetSiblingIndex(putCardIdx);
 
-            _lblRemainingNumber.text = $"{ Const.RESULT_LBL_REMAINING_NUMBER }{ deckCards.Count }";
+            _lblRemainingNumber.text = $"{Const.RESULT_LBL_REMAINING_NUMBER}{deckCards.Count}";
+            _btnSend.interactable = true;
 
             var hashTable = new ExitGames.Client.Photon.Hashtable
             {
@@ -548,28 +563,12 @@ namespace Assets.Services
             var passCnt = Int32.Parse(customProperties[_passCnt].ToString());
 
             // 次のプレイヤーを決定
-            var lblPlayerNames = new List<Text>()
-            {
-                _lblSecondPlayerName
-                , _lblThirdPlayerName
-                , _lblFourthPlayerName
-            };
-            var nextPlayer = String.Empty;
-            foreach (var lblPlayerName in lblPlayerNames)
-            {
-                var isFinished = Convert.ToBoolean(customProperties[$"{_isFinished}{lblPlayerName}"].ToString());
-                if (isFinished)
-                {
-                    continue;
-                }
-                nextPlayer = lblPlayerName.text;
-                break;
-            }
+            var nextPlayer = GetNextPlayer(customProperties);
 
             // フレーム非表示＆ボタンの非活性
             _imgFirstPlayerFrame.enabled = false;
             _btnPass.interactable = false;
-            _btnPull.interactable =  false;
+            _btnPull.interactable = false;
             _btnSend.interactable = false;
 
             var hashTable = new ExitGames.Client.Photon.Hashtable
@@ -579,7 +578,125 @@ namespace Assets.Services
             };
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
+            var raiseEventOptions = new RaiseEventOptions
+            {
+                Receivers = ReceiverGroup.Others,
+                CachingOption = EventCaching.AddToRoomCache,
+            };
+
+            PhotonNetwork.RaiseEvent(_moveNextPlayer, "Hello!", raiseEventOptions, SendOptions.SendReliable);
+
         }
+
+        /// <summary>
+        /// 「出す」ボタン押下時の処理
+        /// </summary>
+        public void OnBtnSendClicked()
+        {
+            var customProperties = PhotonNetwork.CurrentRoom.CustomProperties;
+
+            // 次のプレイヤーを決定
+            var nextPlayer = GetNextPlayer(customProperties);
+
+            // フレーム非表示＆ボタンの非活性
+            _imgFirstPlayerFrame.enabled = false;
+            _btnPass.interactable = false;
+            _btnPull.interactable = false;
+            _btnSend.interactable = false;
+
+            var hashTable = new ExitGames.Client.Photon.Hashtable
+            {
+                { _nowPlayer,  nextPlayer }
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
+
+            var raiseEventOptions = new RaiseEventOptions
+            {
+                Receivers = ReceiverGroup.Others,
+                CachingOption = EventCaching.AddToRoomCache,
+            };
+
+            // TODO:制御
+            PhotonNetwork.RaiseEvent(_moveNextPlayer, "Hello!", raiseEventOptions, SendOptions.SendReliable);
+
+        }
+
+        /// <summary>
+        /// 次のプレイヤーを取得
+        /// </summary>
+        /// <param name="hashTable">カスタムプロパティ</param>
+        /// <returns>次のプレイヤー</returns>
+        private string GetNextPlayer(ExitGames.Client.Photon.Hashtable hashTable)
+        {
+            // 次のプレイヤーを決定
+            var lblPlayerNames = new List<Text>()
+            {
+                _lblSecondPlayerName
+                , _lblThirdPlayerName
+                , _lblFourthPlayerName
+            };
+            var nextPlayer = String.Empty;
+            foreach (var lblPlayerName in lblPlayerNames)
+            {
+                var isFinished = Convert.ToBoolean(hashTable[$"{_isFinished}{lblPlayerName.text}"].ToString());
+                if (isFinished)
+                {
+                    continue;
+                }
+                nextPlayer = lblPlayerName.text;
+                break;
+            }
+
+            return nextPlayer;
+
+        }
+
+        public void OnEvent(EventData photonEvent)
+        {
+            if (photonEvent.Code == _moveNextPlayer)
+            {
+                // 次のプレイヤーに移動したときの処理
+                MyTurn();
+            }
+
+        }
+
+        private void MyTurn()
+        {
+            var customProperties = PhotonNetwork.CurrentRoom.CustomProperties;
+            var nowPlayer = customProperties[_nowPlayer].ToString();
+            if (PhotonNetwork.NickName == nowPlayer)
+            {
+                _btnPull.interactable = true;
+            }
+        }
+
+        private new void OnEnable()
+        {
+            PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
+        }
+
+        private new void OnDisable()
+        {
+            PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
+        }
+        
+        /// <summary>
+        /// カスタムプロパティが取得できるまで待機
+        /// </summary>
+        /// <returns></returns>
+        private async UniTask<ExitGames.Client.Photon.Hashtable> WaitUntilGetCustomProperties()
+        {
+            var currentRoom = PhotonNetwork.CurrentRoom;
+            var hashTable = new ExitGames.Client.Photon.Hashtable();
+            if(currentRoom == null)
+            {
+                await new WaitUntil(() => PhotonNetwork.CurrentRoom != null); ;
+            }
+            return currentRoom.CustomProperties;
+
+        }
+
 
     }
 }

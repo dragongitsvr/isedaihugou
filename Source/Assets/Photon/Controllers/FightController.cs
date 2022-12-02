@@ -73,4 +73,23 @@ public class FightController : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// 「出す」ボタン押下時の処理
+    /// </summary>
+    public void BtnSend_Clicked()
+    {
+        try
+        {
+            // インスタンス※MonoBehaviourを継承している場合は、new禁止
+            var fightService = gameObject.GetComponent<FightService>();
+            fightService.OnBtnSendClicked();
+
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.StackTrace);
+        }
+
+    }
+
 }

@@ -9,11 +9,11 @@ EditorBuildSettings:
     path: Assets/Scenes/Title.unity
     guid: 55009fd4ec85da24694aa3eead38e9fa
   - enabled: 1
-    path: Assets/Scenes/Lobby.unity
-    guid: cc2f4a0702165cc4388ff91590a939a7
-  - enabled: 1
     path: Assets/Scenes/Result.unity
     guid: a85ace873134ced4cb68049c21ec80a2
+  - enabled: 1
+    path: Assets/Scenes/Lobby.unity
+    guid: cc2f4a0702165cc4388ff91590a939a7
   - enabled: 1
     path: Assets/Scenes/Matching.unity
     guid: df81dc4714e79424eb640c15a0440370
