@@ -487,12 +487,12 @@ namespace Assets.Services
             if(rectTransform.anchoredPosition.y == Const.MY_CARD_Y)
             {
                 // まだクリックされていない場合は上に移動
-                rectTransform.position += new Vector3(0, 30f, 0);
+                rectTransform.position += Vector3.up * 30f;
             }
             else
             {
                 // 既にクリックされている場合は元の位置に戻す
-                rectTransform.position -= new Vector3(0, 30f, 0);
+                rectTransform.position -= Vector3.up * 30f;
             }
 
         }
@@ -613,6 +613,12 @@ namespace Assets.Services
             _btnPass.interactable = false;
             _btnPull.interactable = false;
             _btnSend.interactable = false;
+
+            // イベント削除
+            foreach (Transform childTransForm in _firstPlayerHand.transform)
+            {
+                childTransForm.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
+            }
 
             // 赤枠の移動
             var lblPlayerNames = new List<Text>()
@@ -875,22 +881,24 @@ namespace Assets.Services
             // 枠の移動
             for (var i = 0; i < lblPlayerNames.Count(); i++)
             {
+                imgPlayerFrames[i].enabled = false;
                 if (lblPlayerNames[i].text == nextPlayer)
                 {
                     imgPlayerFrames[i].enabled = true;
-                    continue;
-                }
-                if (imgPlayerFrames[i].enabled)
-                {
-                    imgPlayerFrames[i].enabled = false;
                 }
             }
 
             // 自分の場合
-            if(nextPlayer == PhotonNetwork.NickName)
+            if (nextPlayer == PhotonNetwork.NickName)
             {
+                // イベント追加
+                foreach (Transform childTransForm in _firstPlayerHand.transform)
+                {
+                    childTransForm.transform.gameObject.GetComponent<Button>().onClick.AddListener(() => { OnCardClicked(childTransForm.transform.gameObject.GetComponent<RectTransform>()); });
+                }
+
                 // 山札にカードが存在し、パスカウントが他のプレイヤーの数と等しくない
-                if(deckCardsCnt != 0 && passCnt != isNotFinishedPlayerCnt)
+                if (deckCardsCnt != 0 && passCnt != isNotFinishedPlayerCnt)
                 {
                     _btnPull.interactable = true;
                 }
