@@ -84,6 +84,9 @@ namespace Photon.Commons
         // テスト環境かどうか
         public static readonly bool IS_TEST = true;
 
+        // 自分の手札のy座標
+        public static readonly float MY_CARD_Y = -99.2592f;
+
     }
 
 }

@@ -370,6 +370,9 @@ namespace Assets.Services
             var deckCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[_deckCards].ToString());
             var handCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{_playerHand}{myName}"].ToString());
 
+            // カスタムプロパティから名前を取得
+            var playerNames = ((string[])PhotonNetwork.CurrentRoom.CustomProperties[_playerNames]).ToList();
+
             // 残り枚数を表示
             _lblRemainingNumber.text = $"{Const.RESULT_LBL_REMAINING_NUMBER}{deckCards.Count}";
 
@@ -394,6 +397,11 @@ namespace Assets.Services
                     _myFirstCard.texture = Resources.Load<Texture2D>($"{Const.CARD_IMG_PASS}{cardName}");
                     _myFirstCard.name = cardName;
                     i++;
+                    // 自分が初手の場合、クリックイベントを追加
+                    if(playerNames.First() == myName)
+                    {
+                        _myFirstCard.transform.gameObject.GetComponent<Button>().onClick.AddListener(() => { OnCardClicked(_myFirstCard.transform.gameObject.GetComponent<RectTransform>()); });
+                    }
                     continue;
                 }
 
@@ -402,7 +410,11 @@ namespace Assets.Services
                 clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"{Const.CARD_IMG_PASS}{cardName}");
                 clone.GetComponent<RawImage>().name = cardName;
                 clone.transform.SetParent(_firstPlayerHand.transform, false);
-
+                // 自分が初手の場合、クリックイベントを追加
+                if (playerNames.First() == myName)
+                {
+                    clone.transform.gameObject.GetComponent<Button>().onClick.AddListener(() => { OnCardClicked(clone.transform.gameObject.GetComponent<RectTransform>()); });
+                }
                 i++;
             }
 
@@ -472,32 +484,16 @@ namespace Assets.Services
         /// </summary>
         public void OnCardClicked(RectTransform rectTransform)
         {
-            var customProperties = PhotonNetwork.CurrentRoom.CustomProperties;
-            var playerSendCards = new List<CardDto>();
-            var myName = PhotonNetwork.NickName;
-            // キーの存在チェック
-            if (customProperties.TryGetValue($"{_playerSendCards}{myName}", out var outValue))
-            {
-                playerSendCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[$"{_playerSendCards}{myName}"].ToString());
-            }
-            var allCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[_allCards].ToString());
-
-            if (playerSendCards.Any(x => $"{x.Mark}{x.Id.ToString("00")}" == rectTransform.name))
-            {
-                // 既にクリックされている場合は元の位置に戻す
-                rectTransform.position -= new Vector3(0, 30f, 0);
-                playerSendCards.RemoveAll(x => $"{x.Mark}{x.Id.ToString("00")}" == rectTransform.name);
-            }
-            else
+            if(rectTransform.anchoredPosition.y == Const.MY_CARD_Y)
             {
                 // まだクリックされていない場合は上に移動
                 rectTransform.position += new Vector3(0, 30f, 0);
-                playerSendCards.Add(allCards.First(x => $"{x.Mark}{x.Id.ToString("00")}" == rectTransform.name));
             }
-
-            var hashTable = new ExitGames.Client.Photon.Hashtable();
-            hashTable.Add($"{_playerSendCards}{myName}", JsonConvert.SerializeObject(playerSendCards));
-            PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
+            else
+            {
+                // 既にクリックされている場合は元の位置に戻す
+                rectTransform.position -= new Vector3(0, 30f, 0);
+            }
 
         }
 
