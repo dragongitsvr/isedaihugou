@@ -481,25 +481,25 @@ namespace Assets.Services
         public async void OnBtnPullClicked()
         {
             // カスタムプロパティが取得できるまで待機
-            await WaitUntilGetCustomProperties();
+            var customProperties = await WaitUntilGetCustomProperties();
 
             // 山札のカード
-            var deckCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[_deckCards].ToString());
+            var deckCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[_deckCards].ToString());
 
             // 引くカード
             var deckCard = deckCards.First();
             deckCards.Remove(deckCard);
 
             // 全てのカード
-            var allCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[_allCards].ToString());
+            var allCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[_allCards].ToString());
 
             // プレイヤーのカード
             var myName = PhotonNetwork.NickName;
-            var handCards = JsonConvert.DeserializeObject<List<CardDto>>(PhotonNetwork.CurrentRoom.CustomProperties[$"{_playerHand}{myName}"].ToString());
+            var handCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[$"{_playerHand}{myName}"].ToString());
             handCards.Add(deckCard);
 
             // 場のカード
-            var fieldCards = JsonConvert.DeserializeObject<SortedList<int, List<CardDto>>>(PhotonNetwork.CurrentRoom.CustomProperties[_fieldCards].ToString());
+            var fieldCards = JsonConvert.DeserializeObject<SortedList<int, List<CardDto>>>(customProperties[_fieldCards].ToString());
             if (fieldCards.Count() > 0)
             {
                 // 場にカードが出ている場合のみ、「パス」ボタンが使用可能
