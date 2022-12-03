@@ -565,6 +565,7 @@ namespace Assets.Services
             clone.GetComponent<RawImage>().name = cardName;
             clone.transform.SetParent(_firstPlayerHand.transform, false);
             clone.transform.SetSiblingIndex(putCardIdx);
+            clone.transform.gameObject.GetComponent<Button>().onClick.AddListener(() => { OnCardClicked(clone.transform.gameObject.GetComponent<RectTransform>()); });
 
             _lblRemainingNumber.text = $"{Const.RESULT_LBL_REMAINING_NUMBER}{deckCards.Count}";
             _btnSend.interactable = true;
