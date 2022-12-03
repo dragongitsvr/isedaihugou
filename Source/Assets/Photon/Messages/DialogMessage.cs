@@ -29,5 +29,7 @@ namespace Photon.Messages
 
         public static readonly string ERR_MSG_CREATE_ROOM_FAILED = "既にルームが作成されています。「ルーム入室」ボタンより入室してください。ヽ(`Д´)ﾉﾌﾟﾝﾌﾟﾝ";
 
+        public static readonly string ERR_MSG_SEND_CARD_FAILED = "その組み合わせは場に出せません。ヽ(`Д´)ﾉﾌﾟﾝﾌﾟﾝ";
+
     }
 }

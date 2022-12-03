@@ -28,5 +28,10 @@ namespace Assets.Photon.Dtos
         /// </summary>
         public bool IsJoker;
 
+        /// <summary>
+        /// 名前
+        /// </summary>
+        public string Name;
+
     }
 }

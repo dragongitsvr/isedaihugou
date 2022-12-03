@@ -15,6 +15,8 @@ using WDT;
 using System.Diagnostics;
 using UnityEditor;
 using System.Collections;
+using Photon.Services;
+using Photon.Messages;
 
 namespace Assets.Services
 {
@@ -340,6 +342,7 @@ namespace Assets.Services
                         Mark = cardMarks[i]
                         ,
                         Number = number
+                        , Name = $"{cardMarks[i] }{ number:00}"
                     };
                     cards.Add(card);
                     cardId++;
@@ -354,6 +357,7 @@ namespace Assets.Services
                     Id = cardId
                     ,
                     IsJoker = true
+                    , Name = Const.JOKER_DICTIONARY[cardId].ToString()
                 };
                 cards.Add(card);
                 cardId++;
@@ -675,6 +679,18 @@ namespace Assets.Services
         {
             var customProperties = PhotonNetwork.CurrentRoom.CustomProperties;
 
+            // 場に出すカードの取得
+            var sendCards = GetSendCards(customProperties);
+
+            // 場に出したカードのチェック
+            if (!IsSendCards(sendCards, customProperties))
+            {
+                // インスタンス※MonoBehaviourを継承している場合は、new禁止
+                var dialogService = gameObject.GetComponent<DialogService>();
+                dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE, DialogMessage.ERR_MSG_SEND_CARD_FAILED);
+                return;
+            }
+
             // 次のプレイヤーを決定
             var nextPlayer = GetNextPlayer(customProperties);
 
@@ -905,6 +921,119 @@ namespace Assets.Services
 
             }
 
+        }
+
+        /// <summary>
+        /// 場に出すカードを取得
+        /// </summary>
+        /// <param name="customProperties">カスタムプロパティ</param>
+        /// <returns>場に出すカード</returns>
+        private List<CardDto> GetSendCards(ExitGames.Client.Photon.Hashtable customProperties)
+        {
+            var sendCards = new List<CardDto>();
+
+            // 全てのカード
+            var allCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[_allCards].ToString());
+
+            foreach (Transform childTransForm in _firstPlayerHand.transform)
+            {
+                // カードの位置が変わっているものが対象
+                if(childTransForm.transform.gameObject.GetComponent<RectTransform>().anchoredPosition.y != Const.MY_CARD_Y)
+                {
+                    sendCards.Add(allCards.First(x => x.Name == childTransForm.name));
+                }
+            }
+
+            return sendCards;
+
+        }
+
+
+        /// <summary>
+        /// カードを場に出せるかどうかのチェック(初手)
+        /// </summary>
+        /// <param name="fieldCards">場に出す予定のカード</param>
+        /// <param name="customProperties">カスタムプロパティ</param>
+        /// <returns>チェック結果</returns>
+        private bool IsSendCards(List<CardDto> fieldCards, ExitGames.Client.Photon.Hashtable customProperties)
+        {
+            var orderByIdCards = fieldCards.OrderBy(x => x.Id).ToList();
+
+            // 全てのカード
+            var allCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[_allCards].ToString());
+
+            // 1枚の場合はチェック不要
+            if (orderByIdCards.Count == 2)
+            {
+                // 2枚の場合は同じ数字でないとダメ(JOKERは含んでおｋ)
+                // 同じ数字、もしくは、JOKERが1枚でも入っていればおｋ
+                if ((orderByIdCards[0].Number == orderByIdCards[1].Number) || orderByIdCards[0].IsJoker || orderByIdCards[1].IsJoker)
+                {
+                    return true;
+                }
+
+            }
+            else if(orderByIdCards.Count == 3)
+            {
+                // JOKER2枚の場合はチェック不要
+                if(orderByIdCards.Select(x => x.IsJoker).Count() == 2)
+                {
+                    return true;
+                }
+                else if(orderByIdCards.Select(x => x.IsJoker).Count() == 1)
+                {
+                    // JOKER1枚の場合は同じ数字もしくは数字が連続or1つ飛ばしであればおｋ
+                    if (GetConvertedCardNumber(orderByIdCards[0].Number) == GetConvertedCardNumber(orderByIdCards[1].Number)
+                        || GetConvertedCardNumber(orderByIdCards[0].Number) - GetConvertedCardNumber(orderByIdCards[1].Number) == 0
+                        || GetConvertedCardNumber(orderByIdCards[0].Number) - GetConvertedCardNumber(orderByIdCards[1].Number) == 1)
+                    {
+                        return true;
+                    }
+                }
+
+            }else if(orderByIdCards.Count >= 4)
+            {
+                var nowNumber = 0;
+                var beforeNumber = 0;
+                var sumBetweenNumberAndNumber = 0;
+                // 自分の手札-1が数字と数字の間の合計と一致していればおｋ※JOKER1枚2枚同様
+                for (var i = 0; i < orderByIdCards.Count; i++)
+                {
+                    if (i != 0)
+                    {
+                        nowNumber = orderByIdCards[i].Number;
+                    }
+                    sumBetweenNumberAndNumber += nowNumber - beforeNumber;
+                    beforeNumber = orderByIdCards[i].Number;
+
+                }
+                if(orderByIdCards.Count - 1 == sumBetweenNumberAndNumber)
+                {
+                    return true;
+                }
+                // 全部の数字が同じであればおｋ
+                if(orderByIdCards.Select(x => x.Number).Distinct().Count() == 1)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+
+        }
+
+        /// <summary>
+        /// 1もしくは2は14と15として扱う
+        /// </summary>
+        /// <param name="number">1もしくは2</param>
+        /// <returns>14もしくは15</returns>
+        private int GetConvertedCardNumber(int number)
+        {
+            if(number == 1 || number == 2)
+            {
+                return 13 + number;
+            }
+            return number;
         }
 
     }
