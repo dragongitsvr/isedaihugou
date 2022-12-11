@@ -17,7 +17,6 @@ using UnityEditor;
 using System.Collections;
 using Photon.Services;
 using Photon.Messages;
-using DG.Tweening;
 
 namespace Assets.Services
 {
@@ -77,6 +76,10 @@ namespace Assets.Services
         private readonly byte _moveBtnPassNextPlayer = 1; // パスした時の相手側の処理
         private readonly byte _moveBtnSendNextPlayer = 2; // カードを出した時の相手側の処理
 
+        /// <summary>
+        /// 初期処理
+        /// </summary>
+        /// <returns>初期画面</returns>
         public async UniTask Init()
         {
             var myName = PhotonNetwork.NickName;
@@ -369,6 +372,9 @@ namespace Assets.Services
 
         }
 
+        /// <summary>
+        /// カードを表示
+        /// </summary>
         private void ShowCards()
         {
             // カード情報を取得
@@ -478,11 +484,6 @@ namespace Assets.Services
             };
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
-        }
-
-        // ルームプロパティが更新された時
-        public override void OnRoomPropertiesUpdate(ExitGames.Client.Photon.Hashtable hashTable)
-        {
         }
 
         /// <summary>
@@ -829,16 +830,6 @@ namespace Assets.Services
                 OnBtnSendClickedOther((object[])photonEvent.CustomData);
             }
 
-        }
-
-        private void MyTurn()
-        {
-            var customProperties = PhotonNetwork.CurrentRoom.CustomProperties;
-            var nowPlayer = customProperties[_nowPlayer].ToString();
-            if (PhotonNetwork.NickName == nowPlayer)
-            {
-                _btnPull.interactable = true;
-            }
         }
 
         private new void OnEnable()
