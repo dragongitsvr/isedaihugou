@@ -628,27 +628,7 @@ namespace Assets.Services
             }
 
             // 赤枠の移動
-            var lblPlayerNames = new List<Text>()
-            {
-                _lblSecondPlayerName
-                , _lblThirdPlayerName
-                , _lblFourthPlayerName
-            };
-            var imgPlayerFrames = new List<Image>()
-            {
-                _imgSecondPlayerFrame
-                ,_imgThirdPlayerFrame
-                ,_imgFourthPlayerFrame
-            };
-
-            for(var i = 0;i < lblPlayerNames.Count; i++)
-            {
-                if (lblPlayerNames[i].text == nextPlayer)
-                {
-                    imgPlayerFrames[i].enabled = true;
-                    break;
-                }
-            }
+            MoveFrame(nextPlayer);
 
             var hashTable = new ExitGames.Client.Photon.Hashtable
             {
