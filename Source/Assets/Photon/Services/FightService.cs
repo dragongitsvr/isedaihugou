@@ -17,6 +17,7 @@ using UnityEditor;
 using System.Collections;
 using Photon.Services;
 using Photon.Messages;
+using DG.Tweening;
 
 namespace Assets.Services
 {
@@ -73,7 +74,8 @@ namespace Assets.Services
 
         // イベント番号
         private readonly byte _moveBtnPullNextPlayer = 0; // カードを引いた時の相手側の処理
-        private readonly byte _moveBtnPassNextPlayer = 1; // カードを引いた時の相手側の処理
+        private readonly byte _moveBtnPassNextPlayer = 1; // パスした時の相手側の処理
+        private readonly byte _moveBtnSendNextPlayer = 2; // カードを出した時の相手側の処理
 
         public async UniTask Init()
         {
@@ -298,7 +300,7 @@ namespace Assets.Services
                 shuffledCards.Count() - playerNames.Count() * Const.FIRST_HAND_NUMBER);
             hashTable.Add(_allCards, JsonConvert.SerializeObject(cards));
             hashTable.Add(_deckCards, JsonConvert.SerializeObject(deckCards));
-            var fieldCards = new SortedList<int, List<CardDto>>();
+            var fieldCards = new SortedList<string, List<CardDto>>();
             hashTable.Add(_fieldCards, JsonConvert.SerializeObject(fieldCards));
             hashTable.Add(_isCompletedDecideFirstHand, true);
             hashTable.Add(_passCnt, 0);
@@ -676,12 +678,20 @@ namespace Assets.Services
         /// <summary>
         /// 「出す」ボタン押下時の処理
         /// </summary>
-        public void OnBtnSendClicked()
+        public async void OnBtnSendClicked()
         {
-            var customProperties = PhotonNetwork.CurrentRoom.CustomProperties;
+            // カスタムプロパティが取得できるまで待機
+            var customProperties = await WaitUntilGetCustomProperties();
+
+            // 次のプレイヤーを決定
+            var nextPlayer = GetNextPlayer(customProperties);
+
+            // 場のカード情報の取得
+            var fieldCards = JsonConvert.DeserializeObject<SortedList<string, List<CardDto>>>(customProperties[_fieldCards].ToString());
 
             // 場に出すカードの取得
             var sendCards = GetSendCards(customProperties);
+            fieldCards.Add(nextPlayer, sendCards);
 
             // 場に出したカードのチェック
             if (!IsSendCards(sendCards, customProperties))
@@ -692,29 +702,73 @@ namespace Assets.Services
                 return;
             }
 
-            // 次のプレイヤーを決定
-            var nextPlayer = GetNextPlayer(customProperties);
-
             // フレーム非表示＆ボタンの非活性
             _imgFirstPlayerFrame.enabled = false;
             _btnPass.interactable = false;
             _btnPull.interactable = false;
             _btnSend.interactable = false;
 
+            // 場に出すカードの角度を取得
+            (int angleX, int angleY) = GetCardAngle(fieldCards.Count);
+
+            // 場に出すカードのゲームオブジェクトの作成
+            var newGameObject = new GameObject("GameObject");
+            var newGameObjectRectTransform = newGameObject.AddComponent<RectTransform>();
+            var fieldRectTransform = _field.GetComponent<RectTransform>();
+            newGameObjectRectTransform.sizeDelta = new Vector2(fieldRectTransform.sizeDelta.x, fieldRectTransform.sizeDelta.y);
+            newGameObjectRectTransform.position = new Vector3(angleX, angleY, 0);
+            var horizontalLayoutGroup = newGameObject.AddComponent<HorizontalLayoutGroup>();
+            // TODO:定数化
+            horizontalLayoutGroup.spacing = -204;
+            horizontalLayoutGroup.childAlignment = TextAnchor.MiddleCenter;
+            horizontalLayoutGroup.childControlHeight = false;
+            horizontalLayoutGroup.childControlWidth = false;
+            horizontalLayoutGroup.childScaleHeight= false;
+            horizontalLayoutGroup.childScaleWidth= false;
+            horizontalLayoutGroup.childForceExpandHeight = false;
+            horizontalLayoutGroup.childForceExpandWidth= false;
+            newGameObject.transform.SetParent(_field.transform, false);
+
+            foreach(var sendCard in sendCards)
+            {
+                // カードの複製
+                var clone = Instantiate(_myFirstCard.transform.gameObject);
+                clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"{Const.CARD_IMG_PASS}{sendCard.Name}");
+                clone.GetComponent<RawImage>().name = sendCard.Name;
+                clone.transform.SetParent(newGameObject.transform, false);
+
+                // 出すカードを手札から消す
+                Transform child = _firstPlayerHand.transform.Find(sendCard.Name);
+                Destroy(child.gameObject);
+
+            }
+
+            // 枠の移動
+            MoveFrame(nextPlayer);
+
+            // プロパティ更新
             var hashTable = new ExitGames.Client.Photon.Hashtable
             {
                 { _nowPlayer,  nextPlayer }
+                ,{ _fieldCards, JsonConvert.SerializeObject(fieldCards)}
             };
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
-            var raiseEventOptions = new RaiseEventOptions
-            {
-                Receivers = ReceiverGroup.Others,
-                CachingOption = EventCaching.AddToRoomCache,
-            };
+            // 他のプレイヤーにイベントを送信
+            //var raiseEventOptions = new RaiseEventOptions
+            //{
+            //    Receivers = ReceiverGroup.Others,
+            //    CachingOption = EventCaching.AddToRoomCache,
+            //};
 
-            // TODO:制御
-            //PhotonNetwork.RaiseEvent(_moveNextPlayer, "Hello!", raiseEventOptions, SendOptions.SendReliable);
+            //var objectDatas = new object[]
+            //{
+            //    sendCards[0].Name
+            //    ,photonView.ViewID
+            //    ,photonView.transform.position
+            //    ,photonView.transform.rotation
+            //};
+            //PhotonNetwork.RaiseEvent(_moveBtnSendNextPlayer, objectDatas, raiseEventOptions, SendOptions.SendReliable);
 
         }
 
@@ -788,6 +842,11 @@ namespace Assets.Services
             {
                 // 「パス」ボタン押下時の相手側の処理
                 OnBtnPassClickedOther((object[])photonEvent.CustomData);
+            }
+            else if(photonEvent.Code == _moveBtnSendNextPlayer)
+            {
+                // 「出す」ボタン押下時の相手側の処理
+                OnBtnSendClickedOther((object[])photonEvent.CustomData);
             }
 
         }
@@ -879,31 +938,8 @@ namespace Assets.Services
             var deckCardsCnt = Int32.Parse(customData[(int)EnumBtnPassNextPlayer._deckCardsCnt].ToString());
             var isNotFinishedPlayerCnt = Int32.Parse(customData[(int)EnumBtnPassNextPlayer._isNotFinished].ToString());
 
-            var lblPlayerNames = new List<Text>()
-            {
-                _lblFirstPlayerName
-                , _lblSecondPlayerName
-                , _lblThirdPlayerName
-                , _lblFourthPlayerName
-            };
-
-            var imgPlayerFrames = new List<Image>()
-            {
-                _imgFirstPlayerFrame
-                ,_imgSecondPlayerFrame
-                ,_imgThirdPlayerFrame
-                ,_imgFourthPlayerFrame
-            };
-
-            // 枠の移動
-            for (var i = 0; i < lblPlayerNames.Count(); i++)
-            {
-                imgPlayerFrames[i].enabled = false;
-                if (lblPlayerNames[i].text == nextPlayer)
-                {
-                    imgPlayerFrames[i].enabled = true;
-                }
-            }
+            // 赤枠の移動
+            MoveFrame(nextPlayer);
 
             // 自分の場合
             if (nextPlayer == PhotonNetwork.NickName)
@@ -964,6 +1000,7 @@ namespace Assets.Services
             var allCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[_allCards].ToString());
 
             // 1枚の場合はチェック不要
+            if(orderByIdCards.Count == 1) return true;
             if (orderByIdCards.Count == 2)
             {
                 // 2枚の場合は同じ数字でないとダメ(JOKERは含んでおｋ)
@@ -1035,6 +1072,89 @@ namespace Assets.Services
                 return 13 + number;
             }
             return number;
+        }
+
+        /// <summary>
+        /// 「パス」ボタン押下時の相手側の処理
+        /// </summary>
+        private void OnBtnSendClickedOther(object[] customData)
+        {
+            var clone = Instantiate(_myFirstCard.transform.gameObject, (Vector3)customData[2], (Quaternion)customData[3]);
+            clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"{Const.CARD_IMG_PASS}{customData[0].ToString()}");
+            clone.GetComponent<RawImage>().name = customData[0].ToString();
+            clone.transform.SetParent(_field.transform, false);
+            var photonView = clone.AddComponent<PhotonView>();
+            var photonTransformView = clone.AddComponent<PhotonTransformView>();
+            photonTransformView.m_SynchronizeScale = true;
+            photonTransformView.m_SynchronizeRotation = true;
+            photonTransformView.m_SynchronizePosition = true;
+            photonView.ObservedComponents = new List<Component> { photonTransformView };
+            photonView.ViewID = Int32.Parse(customData[1].ToString());
+        }
+
+        /// <summary>
+        /// 場に出すカードの角度を取得
+        /// </summary>
+        /// <param name="fieldCardBlockCnt">カードのブロック数</param>
+        /// <returns>カードの角度</returns>
+        private (int angleX,int angleY) GetCardAngle(int fieldCardBlockCnt)
+        {
+            // 求めた余りに応じて角度を設定
+            var remainder = fieldCardBlockCnt % 4;
+            if (remainder == 0)
+            {
+                // 左上に表示
+                return (-30 , 0);
+            }
+            else if (remainder == 1)
+            {
+                // 右上に表示
+                return (30, 30);
+            }
+            else if (remainder == 1)
+            {
+                // 左下に表示
+                return (-50, 30);
+            }
+            else
+            {
+                // 右下に表示
+                return (20, -15);
+            }
+        }
+
+        /// <summary>
+        /// 枠を移動
+        /// </summary>
+        /// <param name="nextPlayer">次のプレイヤー</param>
+        private void MoveFrame(string nextPlayer)
+        {
+            var lblPlayerNames = new List<Text>()
+            {
+                _lblFirstPlayerName
+                , _lblSecondPlayerName
+                , _lblThirdPlayerName
+                , _lblFourthPlayerName
+            };
+
+            var imgPlayerFrames = new List<Image>()
+            {
+                _imgFirstPlayerFrame
+                ,_imgSecondPlayerFrame
+                ,_imgThirdPlayerFrame
+                ,_imgFourthPlayerFrame
+            };
+
+            // 枠の移動
+            for (var i = 0; i < lblPlayerNames.Count(); i++)
+            {
+                imgPlayerFrames[i].enabled = false;
+                if (lblPlayerNames[i].text == nextPlayer)
+                {
+                    imgPlayerFrames[i].enabled = true;
+                }
+            }
+
         }
 
     }
