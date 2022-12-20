@@ -42,7 +42,7 @@ namespace Assets.Services
         [SerializeField] GameObject _secondPlayerHand;
         [SerializeField] GameObject _thirdPlayerHand;
         [SerializeField] GameObject _fourthPlayerHand;
-        [SerializeField] PhotonView _field;
+        [SerializeField] GameObject _field;
 
         // カスタムプロパティの変数名
         private readonly string _isCompletedDecideOrder = "isCompletedDecideOrder";
@@ -69,6 +69,14 @@ namespace Assets.Services
             , _passCnt
             , _deckCardsCnt
             , _isNotFinished
+        };
+
+        private enum EnumBtnSendNextPlayer
+        {
+            _sendPlayer
+            , _nextPlayer
+            , _sendCards
+            , _fieldCards
         };
 
         // イベント番号
@@ -528,7 +536,8 @@ namespace Assets.Services
             handCards.Add(deckCard);
 
             // 場のカード
-            var fieldCards = JsonConvert.DeserializeObject<SortedList<int, List<CardDto>>>(customProperties[_fieldCards].ToString());
+            var fieldCards = new SortedList<int, List<CardDto>>();
+            fieldCards = JsonConvert.DeserializeObject<SortedList<int, List<CardDto>>>(customProperties[_fieldCards].ToString());
             if (fieldCards.Count() > 0)
             {
                 // 場にカードが出ている場合のみ、「パス」ボタンが使用可能
@@ -542,7 +551,7 @@ namespace Assets.Services
             {
                 var name = childTransform.gameObject.name;
                 var handCardId = 0;
-                if (Const.JOKER_DICTIONARY.Any(x => x.Value.Contains(name)))
+                if (Const.JOKER_DICTIONARY.Any(x => x.Value == name))
                 {
                     handCardId = Const.JOKER_DICTIONARY.First(x => x.Value == name).Key;
                 }
@@ -674,6 +683,9 @@ namespace Assets.Services
             var sendCards = GetSendCards(customProperties);
             fieldCards.Add(nextPlayer, sendCards);
 
+            // 自分の名前
+            var myName = PhotonNetwork.NickName;
+
             // 場に出したカードのチェック
             if (!IsSendCards(sendCards, customProperties))
             {
@@ -689,40 +701,8 @@ namespace Assets.Services
             _btnPull.interactable = false;
             _btnSend.interactable = false;
 
-            // 場に出すカードの角度を取得
-            (int angleX, int angleY) = GetCardAngle(fieldCards.Count);
-
-            // 場に出すカードのゲームオブジェクトの作成
-            var newGameObject = new GameObject("GameObject");
-            var newGameObjectRectTransform = newGameObject.AddComponent<RectTransform>();
-            var fieldRectTransform = _field.GetComponent<RectTransform>();
-            newGameObjectRectTransform.sizeDelta = new Vector2(fieldRectTransform.sizeDelta.x, fieldRectTransform.sizeDelta.y);
-            newGameObjectRectTransform.position = new Vector3(angleX, angleY, 0);
-            var horizontalLayoutGroup = newGameObject.AddComponent<HorizontalLayoutGroup>();
-            // TODO:定数化
-            horizontalLayoutGroup.spacing = -204;
-            horizontalLayoutGroup.childAlignment = TextAnchor.MiddleCenter;
-            horizontalLayoutGroup.childControlHeight = false;
-            horizontalLayoutGroup.childControlWidth = false;
-            horizontalLayoutGroup.childScaleHeight= false;
-            horizontalLayoutGroup.childScaleWidth= false;
-            horizontalLayoutGroup.childForceExpandHeight = false;
-            horizontalLayoutGroup.childForceExpandWidth= false;
-            newGameObject.transform.SetParent(_field.transform, false);
-
-            foreach(var sendCard in sendCards)
-            {
-                // カードの複製
-                var clone = Instantiate(_myFirstCard.transform.gameObject);
-                clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"{Const.CARD_IMG_PASS}{sendCard.Name}");
-                clone.GetComponent<RawImage>().name = sendCard.Name;
-                clone.transform.SetParent(newGameObject.transform, false);
-
-                // 出すカードを手札から消す
-                Transform child = _firstPlayerHand.transform.Find(sendCard.Name);
-                Destroy(child.gameObject);
-
-            }
+            // カードを画面に表示
+            ShowSendedCard(fieldCards.Count, sendCards, myName, myName);
 
             // 枠の移動
             MoveFrame(nextPlayer);
@@ -736,20 +716,21 @@ namespace Assets.Services
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
             // 他のプレイヤーにイベントを送信
-            //var raiseEventOptions = new RaiseEventOptions
-            //{
-            //    Receivers = ReceiverGroup.Others,
-            //    CachingOption = EventCaching.AddToRoomCache,
-            //};
+            var raiseEventOptions = new RaiseEventOptions
+            {
+                Receivers = ReceiverGroup.Others,
+                CachingOption = EventCaching.AddToRoomCache,
+            };
 
-            //var objectDatas = new object[]
-            //{
-            //    sendCards[0].Name
-            //    ,photonView.ViewID
-            //    ,photonView.transform.position
-            //    ,photonView.transform.rotation
-            //};
-            //PhotonNetwork.RaiseEvent(_moveBtnSendNextPlayer, objectDatas, raiseEventOptions, SendOptions.SendReliable);
+            var objectDatas = new object[]
+            {
+                PhotonNetwork.NickName
+                , nextPlayer
+                , JsonConvert.SerializeObject(sendCards)
+                , JsonConvert.SerializeObject(fieldCards)
+            };
+
+            PhotonNetwork.RaiseEvent(_moveBtnSendNextPlayer, objectDatas, raiseEventOptions, SendOptions.SendReliable);
 
         }
 
@@ -999,6 +980,13 @@ namespace Assets.Services
                         return true;
                     }
                 }
+                else
+                {
+                    if (orderByIdCards.Select(x => x.Number).Distinct().Count() == 1)
+                    {
+                        return true;
+                    }
+                }
 
             }else if(orderByIdCards.Count >= 4)
             {
@@ -1046,21 +1034,25 @@ namespace Assets.Services
         }
 
         /// <summary>
-        /// 「パス」ボタン押下時の相手側の処理
+        /// 「出す」ボタン押下時の相手側の処理
         /// </summary>
         private void OnBtnSendClickedOther(object[] customData)
         {
-            var clone = Instantiate(_myFirstCard.transform.gameObject, (Vector3)customData[2], (Quaternion)customData[3]);
-            clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"{Const.CARD_IMG_PASS}{customData[0].ToString()}");
-            clone.GetComponent<RawImage>().name = customData[0].ToString();
-            clone.transform.SetParent(_field.transform, false);
-            var photonView = clone.AddComponent<PhotonView>();
-            var photonTransformView = clone.AddComponent<PhotonTransformView>();
-            photonTransformView.m_SynchronizeScale = true;
-            photonTransformView.m_SynchronizeRotation = true;
-            photonTransformView.m_SynchronizePosition = true;
-            photonView.ObservedComponents = new List<Component> { photonTransformView };
-            photonView.ViewID = Int32.Parse(customData[1].ToString());
+            var sendPlayer = customData[(int)EnumBtnSendNextPlayer._sendPlayer].ToString();
+            var nextPlayer = customData[(int)EnumBtnSendNextPlayer._nextPlayer].ToString();
+            var sendCards = JsonConvert.DeserializeObject<List<CardDto>>(customData[(int)EnumBtnSendNextPlayer._sendCards].ToString());
+            var fieldCards = JsonConvert.DeserializeObject<SortedList<string, List<CardDto>>>(customData[(int)EnumBtnSendNextPlayer._fieldCards].ToString());
+            var myName = PhotonNetwork.NickName;
+
+            // 枠の移動
+            MoveFrame(nextPlayer);
+
+            // 場に出したカードを表示
+            ShowSendedCard(fieldCards.Count - 1,sendCards, myName,sendPlayer);
+
+            // 出したプレイヤーのカードを消す
+            RemoveBackHands(sendPlayer, sendCards.Count);
+            
         }
 
         /// <summary>
@@ -1126,6 +1118,91 @@ namespace Assets.Services
                 }
             }
 
+        }
+
+        /// <summary>
+        /// 背景が裏面となっているカードを削除
+        /// </summary>
+        /// <param name="targetPlayer">対象プレイヤー</param>
+        /// <param name="removeNumber">削除枚数</param>
+        private void RemoveBackHands(string targetPlayer,int removeNumber)
+        {
+            var lblPlayerNames = new List<Text>()
+            {
+                _lblSecondPlayerName
+                , _lblThirdPlayerName
+                , _lblFourthPlayerName
+            };
+
+            var playerBackHands = new List<GameObject>()
+            {
+                _secondPlayerHand
+                , _thirdPlayerHand
+                , _fourthPlayerHand
+            };
+
+            for(int i = 0; i < lblPlayerNames.Count; i++)
+            {
+                if (lblPlayerNames[i].text == targetPlayer)
+                {
+                    for (var j = 0; j < removeNumber; j++)
+                    {
+                        Destroy(playerBackHands[i].transform.GetChild(j).gameObject);
+                    }
+                    break;
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// 場に出したカードを表示
+        /// </summary>
+        /// <param name="fieldCardsCnt">場に出ているカードの組み合わせの個数</param>
+        /// <param name="sendCards">場に出すカード</param>
+        /// <param name="myName">自分の名前</param>
+        /// <param name="sendPlayer">場に出したプレイヤー</param>
+        private void ShowSendedCard(int fieldCardsCnt,List<CardDto> sendCards,string myName,string sendPlayer)
+        {
+            // 場に出すカードの角度を取得
+            (int angleX, int angleY) = GetCardAngle(fieldCardsCnt);
+
+            // 場に出すカードのゲームオブジェクトの作成
+            var newGameObject = new GameObject("GameObject");
+            var newGameObjectRectTransform = newGameObject.AddComponent<RectTransform>();
+            var fieldRectTransform = _field.GetComponent<RectTransform>();
+            newGameObjectRectTransform.sizeDelta = new Vector2(fieldRectTransform.sizeDelta.x, fieldRectTransform.sizeDelta.y);
+            newGameObjectRectTransform.position = new Vector3(angleX, angleY, 0);
+            var horizontalLayoutGroup = newGameObject.AddComponent<HorizontalLayoutGroup>();
+            // TODO:定数化
+            horizontalLayoutGroup.spacing = -204;
+            horizontalLayoutGroup.childAlignment = TextAnchor.MiddleCenter;
+            horizontalLayoutGroup.childControlHeight = false;
+            horizontalLayoutGroup.childControlWidth = false;
+            horizontalLayoutGroup.childScaleHeight = false;
+            horizontalLayoutGroup.childScaleWidth = false;
+            horizontalLayoutGroup.childForceExpandHeight = false;
+            horizontalLayoutGroup.childForceExpandWidth = false;
+            newGameObject.transform.SetParent(_field.transform, false);
+
+            foreach (var sendCard in sendCards)
+            {
+                // カードの複製
+                var clone = Instantiate(_myFirstCard.transform.gameObject);
+                clone.GetComponent<RawImage>().texture = Resources.Load<Texture2D>($"{Const.CARD_IMG_PASS}{sendCard.Name}");
+                clone.GetComponent<RawImage>().name = sendCard.Name;
+                clone.transform.SetParent(newGameObject.transform, false);
+
+                if (myName != sendPlayer)
+                {
+                    continue;
+                }
+
+                // 出すカードを手札から消す
+                Transform child = _firstPlayerHand.transform.Find(sendCard.Name);
+                Destroy(child.gameObject);
+
+            }
         }
 
     }
