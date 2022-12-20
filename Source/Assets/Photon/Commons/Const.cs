@@ -87,6 +87,20 @@ namespace Photon.Commons
         // 自分の手札のy座標
         public static readonly float MY_CARD_Y = -99.2592f;
 
+        // 場に出たカードとカードの間隔
+        public static readonly int FIELD_CARDS_SPACING = -204;
+
+        // 場に出たカードの座標
+        public static readonly int FIELD_CARDS_UPPER_LEFT_X_COORDINATE = -30;
+        public static readonly int FIELD_CARDS_UPPER_LEFT_Y_COORDINATE = 0;
+        public static readonly int FIELD_CARDS_UPPER_RIGHT_X_COORDINATE = 30;
+        public static readonly int FIELD_CARDS_UPPER_RIGHT_Y_COORDINATE = 30;
+        public static readonly int FIELD_CARDS_LOWER_LEFT_X_COORDINATE = -50;
+        public static readonly int FIELD_CARDS_LOWER_LEFT_Y_COORDINATE = -30;
+        public static readonly int FIELD_CARDS_LOWER_RIGHT_X_COORDINATE = 20;
+        public static readonly int FIELD_CARDS_LOWER_RIGHT_Y_COORDINATE = -15;
+
+
     }
 
 }

@@ -1056,33 +1056,33 @@ namespace Assets.Services
         }
 
         /// <summary>
-        /// 場に出すカードの角度を取得
+        /// 場に出すカードの座標を取得
         /// </summary>
         /// <param name="fieldCardBlockCnt">カードのブロック数</param>
         /// <returns>カードの角度</returns>
-        private (int angleX,int angleY) GetCardAngle(int fieldCardBlockCnt)
+        private (int angleX,int angleY) GetCardCoordinates(int fieldCardBlockCnt)
         {
-            // 求めた余りに応じて角度を設定
+            // 求めた余りに応じて座標を設定
             var remainder = fieldCardBlockCnt % 4;
             if (remainder == 0)
             {
                 // 左上に表示
-                return (-30 , 0);
+                return (Const.FIELD_CARDS_UPPER_LEFT_X_COORDINATE, Const.FIELD_CARDS_UPPER_LEFT_Y_COORDINATE);
             }
             else if (remainder == 1)
             {
                 // 右上に表示
-                return (30, 30);
+                return (Const.FIELD_CARDS_UPPER_RIGHT_X_COORDINATE, Const.FIELD_CARDS_UPPER_RIGHT_Y_COORDINATE);
             }
             else if (remainder == 1)
             {
                 // 左下に表示
-                return (-50, 30);
+                return (Const.FIELD_CARDS_LOWER_LEFT_X_COORDINATE, Const.FIELD_CARDS_LOWER_LEFT_Y_COORDINATE);
             }
             else
             {
                 // 右下に表示
-                return (20, -15);
+                return (Const.FIELD_CARDS_LOWER_RIGHT_X_COORDINATE, Const.FIELD_CARDS_LOWER_RIGHT_Y_COORDINATE);
             }
         }
 
@@ -1164,8 +1164,8 @@ namespace Assets.Services
         /// <param name="sendPlayer">場に出したプレイヤー</param>
         private void ShowSendedCard(int fieldCardsCnt,List<CardDto> sendCards,string myName,string sendPlayer)
         {
-            // 場に出すカードの角度を取得
-            (int angleX, int angleY) = GetCardAngle(fieldCardsCnt);
+            // 場に出すカードの座標を取得
+            (int angleX, int angleY) = GetCardCoordinates(fieldCardsCnt);
 
             // 場に出すカードのゲームオブジェクトの作成
             var newGameObject = new GameObject("GameObject");
@@ -1174,8 +1174,7 @@ namespace Assets.Services
             newGameObjectRectTransform.sizeDelta = new Vector2(fieldRectTransform.sizeDelta.x, fieldRectTransform.sizeDelta.y);
             newGameObjectRectTransform.position = new Vector3(angleX, angleY, 0);
             var horizontalLayoutGroup = newGameObject.AddComponent<HorizontalLayoutGroup>();
-            // TODO:定数化
-            horizontalLayoutGroup.spacing = -204;
+            horizontalLayoutGroup.spacing = Const.FIELD_CARDS_SPACING;
             horizontalLayoutGroup.childAlignment = TextAnchor.MiddleCenter;
             horizontalLayoutGroup.childControlHeight = false;
             horizontalLayoutGroup.childControlWidth = false;
