@@ -100,6 +100,8 @@ namespace Photon.Commons
         public static readonly int FIELD_CARDS_LOWER_RIGHT_X_COORDINATE = 20;
         public static readonly int FIELD_CARDS_LOWER_RIGHT_Y_COORDINATE = -15;
 
+        // é©ï™ÇÃî‘ÇÃêF
+        public static readonly string PLAYER_FRAME_COLOR_CD = "#FFD300";
 
     }
 

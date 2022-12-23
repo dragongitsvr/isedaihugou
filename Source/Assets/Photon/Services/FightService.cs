@@ -17,6 +17,7 @@ using UnityEditor;
 using System.Collections;
 using Photon.Services;
 using Photon.Messages;
+using TMPro;
 
 namespace Assets.Services
 {
@@ -43,6 +44,7 @@ namespace Assets.Services
         [SerializeField] GameObject _thirdPlayerHand;
         [SerializeField] GameObject _fourthPlayerHand;
         [SerializeField] GameObject _field;
+        [SerializeField] Image _imgCircle;
 
         // カスタムプロパティの変数名
         private readonly string _isCompletedDecideOrder = "isCompletedDecideOrder";
@@ -273,7 +275,7 @@ namespace Assets.Services
             {
                 if (lblPlayerNames[i].text == playerNames[0])
                 {
-                    imgPlayerFrames[i].enabled = true;
+                    imgPlayerFrames[i].color = CnvColorCdToColorType(Const.PLAYER_FRAME_COLOR_CD);
                     break;
                 }
             }
@@ -625,8 +627,7 @@ namespace Assets.Services
             // 自分を除く上がっていないプレイヤー数
             var isNotFinishedPlayerCnt = GetIsNotFinishedCnt(customProperties);
 
-            // フレーム非表示＆ボタンの非活性
-            _imgFirstPlayerFrame.enabled = false;
+            // ボタンの非活性
             _btnPass.interactable = false;
             _btnPull.interactable = false;
             _btnSend.interactable = false;
@@ -695,8 +696,7 @@ namespace Assets.Services
                 return;
             }
 
-            // フレーム非表示＆ボタンの非活性
-            _imgFirstPlayerFrame.enabled = false;
+            // ボタンの非活性
             _btnPass.interactable = false;
             _btnPull.interactable = false;
             _btnSend.interactable = false;
@@ -1111,10 +1111,10 @@ namespace Assets.Services
             // 枠の移動
             for (var i = 0; i < lblPlayerNames.Count(); i++)
             {
-                imgPlayerFrames[i].enabled = false;
+                imgPlayerFrames[i].color = Color.white;
                 if (lblPlayerNames[i].text == nextPlayer)
                 {
-                    imgPlayerFrames[i].enabled = true;
+                    imgPlayerFrames[i].color = CnvColorCdToColorType(Const.PLAYER_FRAME_COLOR_CD);
                 }
             }
 
@@ -1202,6 +1202,34 @@ namespace Assets.Services
                 Destroy(child.gameObject);
 
             }
+        }
+
+        /// <summary>
+        /// カラーコードをColor型に変換
+        /// </summary>
+        /// <param name="colorCd">カラーコード</param>
+        /// <returns>color</returns>
+        private Color CnvColorCdToColorType(string colorCd)
+        {
+            Color oColor;
+            if (ColorUtility.TryParseHtmlString(colorCd, out oColor))
+            {
+                //Colorを生成できたらそれを返す
+                return oColor;
+            }
+            else
+            {
+                //失敗した場合は白を返す
+                return Color.white;
+            }
+        }
+
+        /// <summary>
+        /// 1フレームごとに実行
+        /// </summary>
+        private void Update()
+        {
+            _imgCircle.transform.Rotate(new Vector3(0, 0, 30) * Time.deltaTime);
         }
 
     }
