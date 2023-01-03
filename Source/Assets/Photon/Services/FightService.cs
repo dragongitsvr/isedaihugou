@@ -501,7 +501,7 @@ namespace Assets.Services
         /// </summary>
         public void OnCardClicked(RectTransform rectTransform)
         {
-            if(rectTransform.anchoredPosition.y == Const.MY_CARD_Y)
+            if(Mathf.Approximately(rectTransform.anchoredPosition.y, Const.MY_CARD_Y))
             {
                 // まだクリックされていない場合は上に移動
                 rectTransform.position += Vector3.up * 30f;
