@@ -194,7 +194,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u5357"
+  m_Text: 
 --- !u!222 &61728910
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2243,6 +2243,10 @@ MonoBehaviour:
   _fourthPlayerHand: {fileID: 244399977}
   _field: {fileID: 841566869}
   _imgCircle: {fileID: 686711474}
+  _lblFirstPlayerWind: {fileID: 1232764011}
+  _lblSecondPlayerWind: {fileID: 61728909}
+  _lblThirdPlayerWind: {fileID: 2018799104}
+  _lblFourthPlayerWind: {fileID: 1019771805}
 --- !u!114 &990404106
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2375,7 +2379,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u5317"
+  m_Text: 
 --- !u!222 &1019771806
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2805,7 +2809,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u6771"
+  m_Text: 
 --- !u!222 &1232764012
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4794,7 +4798,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u897F"
+  m_Text: 
 --- !u!222 &2018799105
 CanvasRenderer:
   m_ObjectHideFlags: 0

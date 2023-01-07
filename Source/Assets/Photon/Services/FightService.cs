@@ -45,6 +45,10 @@ namespace Assets.Services
         [SerializeField] GameObject _fourthPlayerHand;
         [SerializeField] GameObject _field;
         [SerializeField] Image _imgCircle;
+        [SerializeField] Text _lblFirstPlayerWind;
+        [SerializeField] Text _lblSecondPlayerWind;
+        [SerializeField] Text _lblThirdPlayerWind;
+        [SerializeField] Text _lblFourthPlayerWind;
 
         // カスタムプロパティの変数名
         private readonly string _isCompletedDecideOrder = "isCompletedDecideOrder";
@@ -230,6 +234,21 @@ namespace Assets.Services
                 ,_imgFourthPlayerFrame
             };
 
+            var winds = new List<string>()
+            {
+                "東","南","西","北"
+            };
+
+            var tmpWinds = new List<string>(winds);
+
+            var lblPlayerWinds = new List<Text>()
+            {
+                _lblFirstPlayerWind
+                , _lblSecondPlayerWind
+                , _lblThirdPlayerWind
+                , _lblFourthPlayerWind
+            };
+
             var isFirstPlayer = true;
             var playerStartOrder = 0;
             // プレイヤー名を正面から順番に表示していく。
@@ -238,16 +257,20 @@ namespace Assets.Services
                 if (isFirstPlayer && playerNames[i] == myName)
                 {
                     lblPlayerNames[playerStartOrder].text = playerNames[i];
+                    lblPlayerWinds[playerStartOrder].text = winds[i];
                     tmpRemainLblPlayerNames.Remove(lblPlayerNames[i]);
                     tmpRemainPlayerNames.Remove(playerNames[i]);
+                    tmpWinds.Remove(winds[i]);
                     isFirstPlayer = false;
                     playerStartOrder++;
                 }
                 else if (!isFirstPlayer)
                 {
                     lblPlayerNames[playerStartOrder].text = playerNames[i];
+                    lblPlayerWinds[playerStartOrder].text = winds[i];
                     tmpRemainLblPlayerNames.Remove(lblPlayerNames[i]);
                     tmpRemainPlayerNames.Remove(playerNames[i]);
+                    tmpWinds.Remove(winds[i]);
                     playerStartOrder++;
                 }
             }
@@ -256,6 +279,7 @@ namespace Assets.Services
             for (var i = 0; i < tmpRemainPlayerNames.Count(); i++)
             {
                 lblPlayerNames[playerStartOrder].text = tmpRemainPlayerNames[i];
+                lblPlayerWinds[playerStartOrder].text = tmpWinds[i];
                 playerStartOrder++;
             }
 
