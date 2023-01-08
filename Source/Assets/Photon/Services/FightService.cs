@@ -218,21 +218,7 @@ namespace Assets.Services
                 , _lblFourthPlayerName
             };
 
-            var tmpRemainLblPlayerNames = new List<Text>()
-            {
-                _lblFirstPlayerName
-                , _lblSecondPlayerName
-                , _lblThirdPlayerName
-                , _lblFourthPlayerName
-            };
-
-            var imgPlayerFrames = new List<Image>()
-            {
-                _imgFirstPlayerFrame
-                ,_imgSecondPlayerFrame
-                ,_imgThirdPlayerFrame
-                ,_imgFourthPlayerFrame
-            };
+            var tmpRemainLblPlayerNames = new List<Text>(lblPlayerNames);
 
             var winds = new List<string>()
             {
@@ -294,15 +280,8 @@ namespace Assets.Services
                 }
             }
 
-            // 赤枠の設定
-            for (var i = 0; i < lblPlayerNames.Count(); i++)
-            {
-                if (lblPlayerNames[i].text == playerNames[0])
-                {
-                    imgPlayerFrames[i].color = CnvColorCdToColorType(Const.PLAYER_FRAME_COLOR_CD);
-                    break;
-                }
-            }
+            // 枠の設定
+            MoveFrame(playerNames.First());
 
         }
 
@@ -655,12 +634,6 @@ namespace Assets.Services
             _btnPass.interactable = false;
             _btnPull.interactable = false;
             _btnSend.interactable = false;
-
-            // イベント削除
-            foreach (Transform childTransForm in _firstPlayerHand.transform)
-            {
-                childTransForm.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
-            }
 
             // 赤枠の移動
             MoveFrame(nextPlayer);
