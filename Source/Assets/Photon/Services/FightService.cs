@@ -1060,7 +1060,7 @@ namespace Assets.Services
         private (int angleX,int angleY) GetCardCoordinates(int fieldCardBlockCnt)
         {
             // 求めた余りに応じて座標を設定
-            var remainder = fieldCardBlockCnt % 4;
+            var remainder = (fieldCardBlockCnt - 1) % 4;
             if (remainder == 0)
             {
                 // 左上に表示
@@ -1071,7 +1071,7 @@ namespace Assets.Services
                 // 右上に表示
                 return (Const.FIELD_CARDS_UPPER_RIGHT_X_COORDINATE, Const.FIELD_CARDS_UPPER_RIGHT_Y_COORDINATE);
             }
-            else if (remainder == 1)
+            else if (remainder == 2)
             {
                 // 左下に表示
                 return (Const.FIELD_CARDS_LOWER_LEFT_X_COORDINATE, Const.FIELD_CARDS_LOWER_LEFT_Y_COORDINATE);

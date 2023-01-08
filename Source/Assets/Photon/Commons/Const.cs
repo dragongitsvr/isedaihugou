@@ -91,8 +91,8 @@ namespace Photon.Commons
         public static readonly int FIELD_CARDS_SPACING = -204;
 
         // 場に出たカードの座標
-        public static readonly int FIELD_CARDS_UPPER_LEFT_X_COORDINATE = -30;
-        public static readonly int FIELD_CARDS_UPPER_LEFT_Y_COORDINATE = 0;
+        public static readonly int FIELD_CARDS_UPPER_LEFT_X_COORDINATE = -36;
+        public static readonly int FIELD_CARDS_UPPER_LEFT_Y_COORDINATE = 15;
         public static readonly int FIELD_CARDS_UPPER_RIGHT_X_COORDINATE = 30;
         public static readonly int FIELD_CARDS_UPPER_RIGHT_Y_COORDINATE = 30;
         public static readonly int FIELD_CARDS_LOWER_LEFT_X_COORDINATE = -50;
