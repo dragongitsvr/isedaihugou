@@ -61,7 +61,7 @@ namespace Assets.Services
         public override void OnJoinRoomFailed(short returnCode, string message)
         {
             // ダイアログ表示
-            DialogService dialogService = new();
+            DialogService dialogService = gameObject.GetComponent<DialogService>();
             dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE, DialogMessage.ERR_MSG_JOIN_ROOM_FAILED);
 
         }
@@ -309,6 +309,13 @@ namespace Assets.Services
             {
                 { hashKeyReadyPlayer,false },
             };
+            // 部屋が作成されていない場合はロビー画面に遷移
+            if(PhotonNetwork.CurrentRoom == null)
+            {
+                LobbyMatchingArgency.UserId = _userId;
+                SceneManager.LoadScene(Const.SCENE_NAME_LOBBY);
+                return;
+            }
             PhotonNetwork.CurrentRoom.SetCustomProperties(properties);
             PhotonNetwork.LeaveRoom();
         }
