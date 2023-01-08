@@ -18,6 +18,7 @@ using System.Collections;
 using Photon.Services;
 using Photon.Messages;
 using TMPro;
+using Assets.Photon.Commons;
 
 namespace Assets.Services
 {
@@ -523,7 +524,7 @@ namespace Assets.Services
         public async void OnBtnPullClicked()
         {
             // カスタムプロパティが取得できるまで待機
-            var customProperties = await WaitUntilGetCustomProperties();
+            var customProperties = await Common.WaitUntilGetCustomProperties();
 
             // 山札のカード
             var deckCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[_deckCards].ToString());
@@ -616,7 +617,7 @@ namespace Assets.Services
         public async void OnBtnPassClicked()
         {
             // カスタムプロパティが取得できるまで待機
-            var customProperties = await WaitUntilGetCustomProperties();
+            var customProperties = await Common.WaitUntilGetCustomProperties();
 
             // 現在のパス回数を取得
             var passCnt = Int32.Parse(customProperties[_passCnt].ToString());
@@ -669,7 +670,7 @@ namespace Assets.Services
         public async void OnBtnSendClicked()
         {
             // カスタムプロパティが取得できるまで待機
-            var customProperties = await WaitUntilGetCustomProperties();
+            var customProperties = await Common.WaitUntilGetCustomProperties();
 
             // 次のプレイヤーを決定
             var nextPlayer = GetNextPlayer(customProperties);
@@ -818,22 +819,6 @@ namespace Assets.Services
         private new void OnDisable()
         {
             PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
-        }
-
-        /// <summary>
-        /// カスタムプロパティが取得できるまで待機
-        /// </summary>
-        /// <returns></returns>
-        private async UniTask<ExitGames.Client.Photon.Hashtable> WaitUntilGetCustomProperties()
-        {
-            var currentRoom = PhotonNetwork.CurrentRoom;
-            var hashTable = new ExitGames.Client.Photon.Hashtable();
-            if (currentRoom == null)
-            {
-                await new WaitUntil(() => PhotonNetwork.CurrentRoom != null); ;
-            }
-            return currentRoom.CustomProperties;
-
         }
 
         /// <summary>
