@@ -1,4 +1,5 @@
 ﻿using Assets.Photon.Argencies;
+using Assets.Photon.Commons;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using ExitGames.Client.Photon;
@@ -33,6 +34,8 @@ namespace Assets.Services
         private string _userId;
         public Button _btnReady;
 
+        private readonly string _isMatch = "isMatch";
+
         /// <summary>
         /// Photonに接続した時
         /// </summary>
@@ -60,6 +63,13 @@ namespace Assets.Services
         /// <param name="message"></param>
         public override void OnJoinRoomFailed(short returnCode, string message)
         {
+            // 再入場の場合
+            if(returnCode == (short)ErrorCode.GameFull)
+            {
+                PhotonNetwork.ReconnectAndRejoin();
+                PhotonNetwork.RejoinRoom(Const.ROOM_NAME);
+                return;
+            }
             // ダイアログ表示
             DialogService dialogService = gameObject.GetComponent<DialogService>();
             dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE, DialogMessage.ERR_MSG_JOIN_ROOM_FAILED);
@@ -110,7 +120,9 @@ namespace Assets.Services
                     MaxPlayers = Convert.ToByte(Const.MAX_PLAYERES),
                     IsOpen = true,
                     IsVisible = false,
-                    PublishUserId = true
+                    PublishUserId = true,
+                    PlayerTtl = 12000,
+                    EmptyRoomTtl = 12000
                 };
 
                 // 部屋を作成
