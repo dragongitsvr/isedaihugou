@@ -1446,8 +1446,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dialogCanvasDelete: {fileID: 692756351}
-  _title: {fileID: 0}
-  _message: {fileID: 0}
+  _title: {fileID: 1839485786}
+  _message: {fileID: 1264202771}
 --- !u!1 &770851968
 GameObject:
   m_ObjectHideFlags: 0

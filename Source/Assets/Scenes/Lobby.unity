@@ -427,7 +427,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1665679584}
         m_TargetAssemblyTypeName: Photon.Services.DialogService, Assembly-CSharp
         m_MethodName: BtnOk_Clicked
         m_Mode: 1
@@ -1261,8 +1261,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dialogCanvasDelete: {fileID: 573300468}
-  _title: {fileID: 0}
-  _message: {fileID: 0}
+  _title: {fileID: 1719897111}
+  _message: {fileID: 403241864}
 --- !u!114 &573300466
 MonoBehaviour:
   m_ObjectHideFlags: 0
