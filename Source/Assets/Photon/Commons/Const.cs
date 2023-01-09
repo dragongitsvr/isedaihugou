@@ -103,6 +103,9 @@ namespace Photon.Commons
         // 自分の番の色
         public static readonly string PLAYER_FRAME_COLOR_CD = "#FFD300";
 
+        // 場に出せないカードの色
+        public static readonly string CANNOT_SEND_CARDS_COLOR_CD = "#5C5C5C";
+
     }
 
 }

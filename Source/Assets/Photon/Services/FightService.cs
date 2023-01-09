@@ -64,6 +64,9 @@ namespace Assets.Services
         private readonly string _isFinished = "isFinished";
         private readonly string _fieldCards = "fieldCards";
         private readonly string _isCompletedInit = "isCompletedInit";
+        private readonly string _isRock = "isRock";
+        private readonly string _isStairs = "isStairs";
+        private readonly string _isRevolution = "isRevolution";
 
         private enum EnumBtnPullNextPlayer
         {
@@ -84,6 +87,11 @@ namespace Assets.Services
             , _nextPlayer
             , _sendCards
             , _fieldCards
+            , _myHands
+            , _isRock
+            , _isStairs
+            , _isRevolution
+            , _nextPlayerHands
         };
 
         // イベント番号
@@ -685,6 +693,18 @@ namespace Assets.Services
             // 自分の名前
             var myName = PhotonNetwork.NickName;
 
+            // 自分の手札
+            var handCards = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[$"{_playerHand}{myName}"].ToString());
+            var afterSendHands = handCards.Where(x => !sendCards.Any(y => y.Id == x.Id));
+
+            // 状態の取得(縛り、階段、革命)
+            var isRock = customProperties[_isRock] != null && bool.Parse(customProperties[_isRock].ToString());
+            var isStairs = customProperties[_isRock] != null && bool.Parse(customProperties[_isStairs].ToString());
+            var isRevolution = customProperties[_isRock] != null && bool.Parse(customProperties[_isRevolution].ToString());
+
+            // 次のプレイヤーの手札
+            var nextPlayerHands = JsonConvert.DeserializeObject<List<CardDto>>(customProperties[$"{_playerHand}{ nextPlayer }"].ToString());
+
             // 場に出したカードのチェック
             if (!IsSendCards(sendCards, customProperties))
             {
@@ -709,7 +729,8 @@ namespace Assets.Services
             var hashTable = new ExitGames.Client.Photon.Hashtable
             {
                 { _nowPlayer,  nextPlayer }
-                ,{ _fieldCards, JsonConvert.SerializeObject(fieldCards)}
+                ,{ _fieldCards, JsonConvert.SerializeObject(fieldCards) }
+                , { $"{ _playerHand }{ myName }", JsonConvert.SerializeObject(afterSendHands) }
             };
             PhotonNetwork.CurrentRoom.SetCustomProperties(hashTable);
 
@@ -726,6 +747,11 @@ namespace Assets.Services
                 , nextPlayer
                 , JsonConvert.SerializeObject(sendCards)
                 , JsonConvert.SerializeObject(fieldCards)
+                , JsonConvert.SerializeObject(afterSendHands)
+                , isRock
+                , isStairs
+                , isRevolution
+                , JsonConvert.SerializeObject(nextPlayerHands)
             };
 
             PhotonNetwork.RaiseEvent(_moveBtnSendNextPlayer, objectDatas, raiseEventOptions, SendOptions.SendReliable);
@@ -1024,7 +1050,12 @@ namespace Assets.Services
             var nextPlayer = customData[(int)EnumBtnSendNextPlayer._nextPlayer].ToString();
             var sendCards = JsonConvert.DeserializeObject<List<CardDto>>(customData[(int)EnumBtnSendNextPlayer._sendCards].ToString());
             var fieldCards = JsonConvert.DeserializeObject<SortedList<string, List<CardDto>>>(customData[(int)EnumBtnSendNextPlayer._fieldCards].ToString());
+            var myHand = JsonConvert.DeserializeObject<List<CardDto>>(customData[(int)EnumBtnSendNextPlayer._myHands].ToString());
             var myName = PhotonNetwork.NickName;
+            var isRock = bool.Parse(customData[(int)EnumBtnSendNextPlayer._isRock].ToString());
+            var isStairs = bool.Parse(customData[(int)EnumBtnSendNextPlayer._isStairs].ToString());
+            var isRevolution = bool.Parse(customData[(int)EnumBtnSendNextPlayer._isRevolution].ToString());
+            var nextPlayerHands = JsonConvert.DeserializeObject<List<CardDto>>(customData[(int)EnumBtnSendNextPlayer._nextPlayerHands].ToString());
 
             // 枠の移動
             MoveFrame(nextPlayer);
@@ -1034,7 +1065,16 @@ namespace Assets.Services
 
             // 出したプレイヤーのカードを消す
             RemoveBackHands(sendPlayer, sendCards.Count);
-            
+
+            // 自分の番じゃない場合は処理終了
+            if(nextPlayer != myName)
+            {
+                return;
+            }
+
+            // 場に出せないカードを黒色にする
+            MakeBlackCannotBeSended(sendCards, nextPlayerHands, fieldCards, isRock, isStairs, isRevolution);
+
         }
 
         /// <summary>
@@ -1212,6 +1252,77 @@ namespace Assets.Services
         private void Update()
         {
             _imgCircle.transform.Rotate(new Vector3(0, 0, 30) * Time.deltaTime);
+        }
+
+        /// <summary>
+        /// 場に出せないカードを黒色にする
+        /// </summary>
+        /// <param name="sendCards">場に出したカード</param>
+        /// <param name="myHands">自分の手札</param>
+        /// <param name="fieldCards">場のカード</param>
+        /// <param name="isRock">縛りかどうか</param>
+        /// <param name="isStairs">階段かどうか</param>
+        /// <param name="isRevolution">革命かどうか</param>
+        private void MakeBlackCannotBeSended(List<CardDto> sendCards, List<CardDto> myHands, SortedList<string, List<CardDto>> fieldCards
+            ,bool isRock,bool isStairs,bool isRevolution)
+        {
+            var makeBlackCards = new List<CardDto>();
+
+            // 場に出したカードの枚数に応じて処理を分ける
+            if (sendCards.Count == 1)
+            {
+                // 1枚の場合
+
+                // JOKER単体の場合
+                if (sendCards.First().IsJoker)
+                {                    
+                    if(myHands.Exists(x => x.Mark == Const.CARD_MARK_SPADE && x.Number == 3))
+                    {
+                        // スペ3が存在すれば、スペ3以外を透明にする
+                        makeBlackCards.AddRange(myHands.Where(x => !(x.Mark == Const.CARD_MARK_SPADE && x.Number == 3)));
+                    }
+                    else
+                    {
+                        // スペ3が存在しない場合は、全て透明にする
+                        makeBlackCards.AddRange(myHands);
+                    }
+
+                }
+            }
+            else if (sendCards.Count == 2)
+            {
+                // 2枚の場合
+            }
+            else if (sendCards.Count == 3)
+            {
+                // 3枚の場合
+            }
+            else
+            {
+                // 4枚以上の場合
+            }
+
+            foreach (Transform childTransform in _firstPlayerHand.transform)
+            {
+                var cardName = childTransform.gameObject.name;
+
+                // 透明にするカードの選定
+                if (makeBlackCards.Any(x => x.IsJoker ? x.Id == GetJokerId(cardName) : $"{ x.Mark }{ x.Number.ToString("00") }" == cardName))
+                {
+                    childTransform.GetComponent<RawImage>().color = CnvColorCdToColorType(Const.CANNOT_SEND_CARDS_COLOR_CD);
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// JOKERカードのIDを取得
+        /// </summary>
+        /// <param name="colorCd">カード名</param>
+        /// <returns>JOKERカードのID</returns>
+        private int GetJokerId(string cardName)
+        {
+            return Const.JOKER_DICTIONARY.First(x => x.Value == cardName).Key;
         }
 
     }
