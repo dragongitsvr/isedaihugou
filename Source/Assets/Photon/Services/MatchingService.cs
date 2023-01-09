@@ -63,16 +63,12 @@ namespace Assets.Services
         /// <param name="message"></param>
         public override void OnJoinRoomFailed(short returnCode, string message)
         {
-            // 再入場の場合
-            if(returnCode == (short)ErrorCode.GameFull)
-            {
-                PhotonNetwork.ReconnectAndRejoin();
-                PhotonNetwork.RejoinRoom(Const.ROOM_NAME);
-                return;
-            }
+            var errMessage = string.Empty;
+            errMessage = $"エラーコード：" + returnCode + "\nエラーメッセージ：" + message + "\nシステム開発者にお問い合わせください。";
+
             // ダイアログ表示
             DialogService dialogService = gameObject.GetComponent<DialogService>();
-            dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE, DialogMessage.ERR_MSG_JOIN_ROOM_FAILED);
+            dialogService.OpenOkDialog(DialogMessage.ERR_MSG_TITLE, errMessage);
 
         }
 
