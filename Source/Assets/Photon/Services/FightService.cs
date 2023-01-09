@@ -550,8 +550,8 @@ namespace Assets.Services
             handCards.Add(deckCard);
 
             // 場のカード
-            var fieldCards = new SortedList<int, List<CardDto>>();
-            fieldCards = JsonConvert.DeserializeObject<SortedList<int, List<CardDto>>>(customProperties[_fieldCards].ToString());
+            var fieldCards = new SortedList<string, List<CardDto>>();
+            fieldCards = JsonConvert.DeserializeObject<SortedList<string, List<CardDto>>>(customProperties[_fieldCards].ToString());
             if (fieldCards.Count() > 0)
             {
                 // 場にカードが出ている場合のみ、「パス」ボタンが使用可能
@@ -1061,7 +1061,7 @@ namespace Assets.Services
             MoveFrame(nextPlayer);
 
             // 場に出したカードを表示
-            ShowSendedCard(fieldCards.Count - 1,sendCards, myName,sendPlayer);
+            ShowSendedCard(fieldCards.Count,sendCards, myName,sendPlayer);
 
             // 出したプレイヤーのカードを消す
             RemoveBackHands(sendPlayer, sendCards.Count);
