@@ -19,6 +19,8 @@ using Photon.Services;
 using Photon.Messages;
 using TMPro;
 using Assets.Photon.Commons;
+using System.Text.RegularExpressions;
+using UnityEngine.XR;
 
 namespace Assets.Services
 {
@@ -1073,7 +1075,7 @@ namespace Assets.Services
             }
 
             // 場に出せないカードを黒色にする
-            MakeBlackCannotBeSended(sendCards, nextPlayerHands, fieldCards, isRock, isStairs, isRevolution);
+            MakeBlackCannotBeSended(sendCards, nextPlayerHands, fieldCards, isRock, isStairs, isRevolution,null,null);
 
         }
 
@@ -1263,8 +1265,10 @@ namespace Assets.Services
         /// <param name="isRock">縛りかどうか</param>
         /// <param name="isStairs">階段かどうか</param>
         /// <param name="isRevolution">革命かどうか</param>
+        /// <param name="jokerColorCardName">JOKER(カラー)がどのカードとして扱われたのか</param>
+        /// <param name="jokerMonochromeCardName">JOKER(黒)がどのカードとして扱われたのか</param>
         private void MakeBlackCannotBeSended(List<CardDto> sendCards, List<CardDto> myHands, SortedList<string, List<CardDto>> fieldCards
-            ,bool isRock,bool isStairs,bool isRevolution)
+            , bool isRock, bool isStairs, bool isRevolution, string jokerColorCardName, string jokerMonochromeCardName)
         {
             var makeBlackCards = new List<CardDto>();
 
@@ -1272,26 +1276,386 @@ namespace Assets.Services
             if (sendCards.Count == 1)
             {
                 // 1枚の場合
+                var sendCard = sendCards.First();
 
-                // JOKER単体の場合
-                if (sendCards.First().IsJoker)
+                // JOKERや状態(縛り、階段、革命)によって処理分岐
+                if (sendCard.IsJoker)
                 {                    
                     if(myHands.Exists(x => x.Mark == Const.CARD_MARK_SPADE && x.Number == 3))
                     {
-                        // スペ3が存在すれば、スペ3以外を透明にする
+                        // スペ3が存在すれば、スペ3以外を黒色にする
                         makeBlackCards.AddRange(myHands.Where(x => !(x.Mark == Const.CARD_MARK_SPADE && x.Number == 3)));
                     }
                     else
                     {
-                        // スペ3が存在しない場合は、全て透明にする
+                        // スペ3が存在しない場合は、全て黒色にする
                         makeBlackCards.AddRange(myHands);
                     }
 
+                }
+                // 縛りの場合
+                else if (isRock)
+                {
+                    // 階段の場合
+                    if (isStairs)
+                    {
+                        // 革命の場合
+                        if (isRevolution)
+                        {
+                            // 出されたカードの(数字 - 1)かつ同じマーク以外もしくはJOKER以外は場に出せない
+                            makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) - 1 == x.Number && sendCard.Mark == x.Mark) || !x.IsJoker).ToList());
+                        }
+                        // 革命ではない場合
+                        else
+                        {
+                            // 出されたカードの(数字 + 1)かつ同じマーク以外もしくはJOKER以外は場に出せない
+                            makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) + 1 == x.Number && sendCard.Mark == x.Mark) ||  !x.IsJoker).ToList());
+                        }
+                    }
+                    // 階段ではない場合
+                    else
+                    {
+                        // 革命の場合
+                        if (isRevolution)
+                        {
+                            // 出されたカードの数字以下かつ同じマーク以外もしくはJOKER以外は場に出せない
+                            makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) <= x.Number && sendCard.Mark == x.Mark) || !x.IsJoker).ToList());
+                        }
+                        // 革命ではない場合
+                        else
+                        {
+                            // 出されたカードの数字以上かつ同じマーク以外もしくはJOKER以外は場に出せない
+                            makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) >= x.Number && sendCard.Mark == x.Mark) || !x.IsJoker).ToList());
+                        }
+                    }
+                }
+                // 縛りではない場合
+                else
+                {
+                    // 階段の場合
+                    if (isStairs)
+                    {
+                        // 革命の場合
+                        if (isRevolution)
+                        {
+                            // 出されたカードの(数字 - 1)以外もしくはJOKER以外は場に出せない
+                            makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) - 1 == x.Number) || !x.IsJoker).ToList());
+                        }
+                        // 革命ではない場合
+                        else
+                        {
+                            // 出されたカードの(数字 + 1)以外もしくはJOKER以外は場に出せない
+                            makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) + 1 == x.Number) || !x.IsJoker).ToList());
+                        }
+                    }
+                    // 階段ではない場合
+                    else
+                    {
+                        // 革命の場合
+                        if (isRevolution)
+                        {
+                            // 出されたカードの数字以下かつ同じマーク以外もしくはJOKER以外は場に出せない
+                            makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) <= x.Number) || !x.IsJoker).ToList());
+                        }
+                        // 革命ではない場合
+                        else
+                        {
+                            // 出されたカードの数字以上かつ同じマーク以外もしくはJOKER以外は場に出せない
+                            makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) >= x.Number) || !x.IsJoker).ToList());
+                        }
+                    }
                 }
             }
             else if (sendCards.Count == 2)
             {
                 // 2枚の場合
+
+                // JOKER2枚の場合は全て黒色にする
+                if (sendCards.Count(x => x.IsJoker) == 2)
+                {
+                    makeBlackCards.AddRange(myHands);
+                }
+                // JOKER1枚以下の場合
+                else if (sendCards.Count(x => x.IsJoker) <= 1)
+                {
+                    var sendCardNotJoker = sendCards.Where(x => !x.IsJoker).First();
+
+                    // 縛りの場合
+                    if (isRock)
+                    {
+                        var jokerColorCardMark = Regex.Replace(jokerColorCardName, @"[^a-zA-Z]", "");
+                        var jokerColorCardNumber = Int32.Parse(jokerColorCardName.Replace(jokerColorCardMark, ""));
+
+                        // 階段の場合
+                        if (isStairs)
+                        {
+                            // 革命の場合
+                            if (isRevolution)
+                            {
+                                // 手札にJOKERが1枚以上ある場合
+                                if (myHands.Count(x => x.IsJoker) >= 1)
+                                {
+                                    // 出されたカードの(数字 - 1)以外もしくはJOKER以外は場に出せない
+                                    makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCardNotJoker.Number) - 1 == x.Number && sendCardNotJoker.Mark == x.Mark) || !x.IsJoker).ToList());
+                                }
+                                // 手札にJOKERが1枚もない場合
+                                else
+                                {
+                                    foreach (var myHandNumber in myHands.Select(x => x.Number).Distinct())
+                                    {
+                                        var convertCardNumber = GetConvertedCardNumber(myHandNumber);
+                                        // 次のパターンに当てはまるカードは出せない
+                                        // ・出されたカードの数字以上のカード
+                                        // ・出されたカードの数字よりも2以上小さいカード
+                                        // ・数字毎で1枚しか存在しない
+                                        // ・数字毎で同じマークが2種類存在しない
+                                        // ・数字毎で同じマークが2種類存在する場合は同じマーク以外のカード
+                                        if (convertCardNumber >= sendCardNotJoker.Number ||
+                                            convertCardNumber <= (sendCardNotJoker.Number + 2) ||
+                                            myHands.Count(x => x.Number == myHandNumber) == 1 ||
+                                            myHands.Count(x => (x.Number == myHandNumber) && (x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)) < 2)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => x.Number == myHandNumber).ToList());
+                                        }
+                                        else if (myHands.Count(x => (x.Number == myHandNumber) && (x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)) == 2)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => (x.Number == myHandNumber) && !(x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)).ToList());
+                                        }
+                                    }
+
+                                }
+                            }
+                            // 革命ではない場合
+                            else
+                            {
+                                // 手札にJOKERが1枚以上ある場合
+                                if (myHands.Count(x => x.IsJoker) >= 1)
+                                {
+                                    // 出されたカードの(数字 + 1)以外もしくはJOKER以外は場に出せない
+                                    makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCardNotJoker.Number) + 1 == x.Number && sendCardNotJoker.Mark == x.Mark) || !x.IsJoker).ToList());
+                                }
+                                // 手札にJOKERが1枚もない場合
+                                else
+                                {
+                                    foreach (var myHandNumber in myHands.Select(x => x.Number).Distinct())
+                                    {
+                                        var convertCardNumber = GetConvertedCardNumber(myHandNumber);
+                                        // 次のパターンに当てはまるカードは出せない
+                                        // ・出されたカードの数字以下のカード
+                                        // ・出されたカードの数字よりも2以上大きいカード
+                                        // ・数字毎で1枚しか存在しない
+                                        // ・数字毎で同じマークが2種類存在しない
+                                        // ・数字毎で同じマークが2種類存在する場合は同じマーク以外のカード
+                                        if (convertCardNumber <= sendCardNotJoker.Number ||
+                                            convertCardNumber >= (sendCardNotJoker.Number + 2) ||
+                                            myHands.Count(x => x.Number == myHandNumber) == 1 ||
+                                            myHands.Count(x => (x.Number == myHandNumber) && (x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)) < 2)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => x.Number == myHandNumber).ToList());
+                                        }
+                                        else if (myHands.Count(x => (x.Number == myHandNumber) && (x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)) == 2)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => (x.Number == myHandNumber) && !(x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)).ToList());
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                        // 階段ではない場合
+                        else
+                        {
+                            // 革命の場合
+                            if (isRevolution)
+                            {
+                                // 手札にJOKERが1枚以上ある場合
+                                if (myHands.Count(x => x.IsJoker) >= 1)
+                                {
+                                    // 出されたカードの数字以上もしくはJOKER以外は場に出せない
+                                    makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCardNotJoker.Number) >= x.Number && sendCardNotJoker.Mark == x.Mark) || !x.IsJoker).ToList());
+                                }
+                                // 手札にJOKERが1枚もない場合
+                                else
+                                {
+                                    foreach (var myHandNumber in myHands.Select(x => x.Number).Distinct())
+                                    {
+                                        var convertCardNumber = GetConvertedCardNumber(myHandNumber);
+                                        // 次のパターンに当てはまるカードは出せない
+                                        // ・出されたカードの数字以上のカード
+                                        // ・数字毎で1枚しか存在しない
+                                        // ・数字毎で同じマークが2種類存在しない
+                                        // ・数字毎で同じマークが2種類存在する場合は同じマーク以外のカード
+                                        if (convertCardNumber >= sendCardNotJoker.Number ||
+                                            myHands.Count(x => x.Number == myHandNumber) == 1 ||
+                                            myHands.Count(x => (x.Number == myHandNumber) && (x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)) < 2)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => x.Number == myHandNumber).ToList());
+                                        }
+                                        else if (myHands.Count(x => (x.Number == myHandNumber) && (x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)) == 2)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => (x.Number == myHandNumber) && !(x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)).ToList());
+                                        }
+                                    }
+
+                                }
+                            }
+                            // 革命ではない場合
+                            else
+                            {
+                                // 手札にJOKERが1枚以上ある場合
+                                if (myHands.Count(x => x.IsJoker) >= 1)
+                                {
+                                    // 出されたカードの数字以下もしくはJOKER以外は場に出せない
+                                    makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCardNotJoker.Number) <= x.Number && sendCardNotJoker.Mark == x.Mark) || !x.IsJoker).ToList());
+                                }
+                                // 手札にJOKERが1枚もない場合
+                                else
+                                {
+                                    foreach (var myHandNumber in myHands.Select(x => x.Number).Distinct())
+                                    {
+                                        var convertCardNumber = GetConvertedCardNumber(myHandNumber);
+                                        // 次のパターンに当てはまるカードは出せない
+                                        // ・出されたカードの数字以下のカード
+                                        // ・数字毎で1枚しか存在しない
+                                        // ・数字毎で同じマークが2種類存在しない
+                                        // ・数字毎で同じマークが2種類存在する場合は同じマーク以外のカード
+                                        if (convertCardNumber <= sendCardNotJoker.Number ||
+                                            myHands.Count(x => x.Number == myHandNumber) == 1 ||
+                                            myHands.Count(x => (x.Number == myHandNumber) && (x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)) < 2)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => x.Number == myHandNumber).ToList());
+                                        }
+                                        else if (myHands.Count(x => (x.Number == myHandNumber) && (x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)) == 2)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => (x.Number == myHandNumber) && !(x.Mark == sendCardNotJoker.Mark || x.Mark == jokerColorCardMark)).ToList());
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                    // 縛りではない場合
+                    else
+                    {
+                        // 階段の場合
+                        if (isStairs)
+                        {
+                            // 革命の場合
+                            if (isRevolution)
+                            {
+                                // 手札にJOKERが1枚以上ある場合
+                                if (myHands.Count(x => x.IsJoker) >= 1)
+                                {
+                                    // 出されたカードの(数字 - 1)以外もしくはJOKER以外は場に出せない
+                                    makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCardNotJoker.Number) - 1 == x.Number && sendCardNotJoker.Mark == x.Mark) || !x.IsJoker).ToList());
+                                }
+                                // 手札にJOKERが1枚もない場合
+                                else
+                                {
+                                    foreach (var myHandNumber in myHands.Select(x => x.Number).Distinct())
+                                    {
+                                        var convertCardNumber = GetConvertedCardNumber(myHandNumber);
+                                        // 次のパターンに当てはまるカードは出せない
+                                        // ・出されたカードの数字以上のカード
+                                        // ・出されたカードの数字よりも2以上小さいカード
+                                        // ・数字毎で1枚しか存在しない
+                                        if (convertCardNumber >= sendCardNotJoker.Number ||
+                                            convertCardNumber <= (sendCardNotJoker.Number + 2) ||
+                                            myHands.Count(x => x.Number == myHandNumber) == 1)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => x.Number == myHandNumber).ToList());
+                                        }
+                                    }
+                                }
+                            }
+                            // 革命ではない場合
+                            else
+                            {
+                                // 手札にJOKERが1枚以上ある場合
+                                if (myHands.Count(x => x.IsJoker) >= 1)
+                                {
+                                    // 出されたカードの数字以下もしくはJOKER以外は場に出せない
+                                    makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCardNotJoker.Number) <= x.Number && sendCardNotJoker.Mark == x.Mark) || !x.IsJoker).ToList());
+                                }
+                                // 手札にJOKERが1枚もない場合
+                                else
+                                {
+                                    foreach (var myHandNumber in myHands.Select(x => x.Number).Distinct())
+                                    {
+                                        var convertCardNumber = GetConvertedCardNumber(myHandNumber);
+                                        // 次のパターンに当てはまるカードは出せない
+                                        // ・出されたカードの数字以下のカード
+                                        // ・出されたカードの数字よりも2以上大きいカード
+                                        // ・数字毎で1枚しか存在しない
+                                        if (convertCardNumber <= sendCardNotJoker.Number ||
+                                            convertCardNumber >= (sendCardNotJoker.Number + 2) ||
+                                            myHands.Count(x => x.Number == myHandNumber) == 1)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => x.Number == myHandNumber).ToList());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // 階段ではない場合
+                        else
+                        {
+                            // 革命の場合
+                            if (isRevolution)
+                            {
+                                // 手札にJOKERが1枚以上ある場合
+                                if (myHands.Count(x => x.IsJoker) >= 1)
+                                {
+                                    // 出されたカードの数字以上もしくはJOKER以外は場に出せない
+                                    makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCardNotJoker.Number) <= x.Number && sendCardNotJoker.Mark == x.Mark) || !x.IsJoker).ToList());
+                                }
+                                // 手札にJOKERが1枚もない場合
+                                else
+                                {
+                                    foreach (var myHandNumber in myHands.Select(x => x.Number).Distinct())
+                                    {
+                                        var convertCardNumber = GetConvertedCardNumber(myHandNumber);
+                                        // 次のパターンに当てはまるカードは出せない
+                                        // ・出されたカードの数字以上のカード
+                                        // ・数字毎で1枚しか存在しない
+                                        if (convertCardNumber >= sendCardNotJoker.Number ||
+                                            myHands.Count(x => x.Number == myHandNumber) == 1)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => x.Number == myHandNumber).ToList());
+                                        }
+                                    }
+                                }
+                            }
+                            // 革命ではない場合
+                            else
+                            {
+                                // 手札にJOKERが1枚以上ある場合
+                                if (myHands.Count(x => x.IsJoker) >= 1)
+                                {
+                                    // 出されたカードの数字以下もしくはJOKER以外は場に出せない
+                                    makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCardNotJoker.Number) <= x.Number && sendCardNotJoker.Mark == x.Mark) || !x.IsJoker).ToList());
+                                }
+                                // 手札にJOKERが1枚もない場合
+                                else
+                                {
+                                    foreach (var myHandNumber in myHands.Select(x => x.Number).Distinct())
+                                    {
+                                        var convertCardNumber = GetConvertedCardNumber(myHandNumber);
+                                        // 次のパターンに当てはまるカードは出せない
+                                        // ・出されたカードの数字以下のカード
+                                        // ・数字毎で1枚しか存在しない
+                                        if (convertCardNumber <= sendCardNotJoker.Number ||
+                                            myHands.Count(x => x.Number == myHandNumber) == 1)
+                                        {
+                                            makeBlackCards.AddRange(myHands.Where(x => x.Number == myHandNumber).ToList());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             else if (sendCards.Count == 3)
             {
