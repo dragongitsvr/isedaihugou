@@ -1257,7 +1257,7 @@ namespace Assets.Services
         }
 
         /// <summary>
-        /// 場に出せないカードを黒色にする
+        /// TODO:場に出せないカードを黒色にする
         /// </summary>
         /// <param name="sendCards">場に出したカード</param>
         /// <param name="myHands">自分の手札</param>
@@ -1277,6 +1277,7 @@ namespace Assets.Services
             {
                 // 1枚の場合
                 var sendCard = sendCards.First();
+                var backElevenFlg = sendCard.Number == 11;
 
                 // JOKERや状態(縛り、階段、革命)によって処理分岐
                 if (sendCard.IsJoker)
@@ -1300,7 +1301,7 @@ namespace Assets.Services
                     if (isStairs)
                     {
                         // 革命の場合
-                        if (isRevolution)
+                        if ((isRevolution && !backElevenFlg) || (!isRevolution && backElevenFlg))
                         {
                             // 出されたカードの(数字 - 1)かつ同じマーク以外もしくはJOKER以外は場に出せない
                             makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) - 1 == x.Number && sendCard.Mark == x.Mark) || !x.IsJoker).ToList());
@@ -1316,7 +1317,7 @@ namespace Assets.Services
                     else
                     {
                         // 革命の場合
-                        if (isRevolution)
+                        if (isRevolution && !backElevenFlg || (!isRevolution && backElevenFlg))
                         {
                             // 出されたカードの数字以下かつ同じマーク以外もしくはJOKER以外は場に出せない
                             makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) <= x.Number && sendCard.Mark == x.Mark) || !x.IsJoker).ToList());
@@ -1336,7 +1337,7 @@ namespace Assets.Services
                     if (isStairs)
                     {
                         // 革命の場合
-                        if (isRevolution)
+                        if (isRevolution && !backElevenFlg || (!isRevolution && backElevenFlg))
                         {
                             // 出されたカードの(数字 - 1)以外もしくはJOKER以外は場に出せない
                             makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) - 1 == x.Number) || !x.IsJoker).ToList());
@@ -1352,7 +1353,7 @@ namespace Assets.Services
                     else
                     {
                         // 革命の場合
-                        if (isRevolution)
+                        if (isRevolution && !backElevenFlg || (!isRevolution && backElevenFlg))
                         {
                             // 出されたカードの数字以下かつ同じマーク以外もしくはJOKER以外は場に出せない
                             makeBlackCards.AddRange(myHands.Where(x => !(GetConvertedCardNumber(sendCard.Number) <= x.Number) || !x.IsJoker).ToList());
@@ -1379,6 +1380,7 @@ namespace Assets.Services
                 else if (sendCards.Count(x => x.IsJoker) <= 1)
                 {
                     var sendCardNotJoker = sendCards.Where(x => !x.IsJoker).First();
+                    var backElevenFlg = sendCardNotJoker.Number == 11;
 
                     // 縛りの場合
                     if (isRock)
@@ -1390,7 +1392,7 @@ namespace Assets.Services
                         if (isStairs)
                         {
                             // 革命の場合
-                            if (isRevolution)
+                            if ((isRevolution && !backElevenFlg) || (!isRevolution && backElevenFlg))
                             {
                                 // 手札にJOKERが1枚以上ある場合
                                 if (myHands.Count(x => x.IsJoker) >= 1)
@@ -1466,7 +1468,7 @@ namespace Assets.Services
                         else
                         {
                             // 革命の場合
-                            if (isRevolution)
+                            if ((isRevolution && !backElevenFlg) || (!isRevolution && backElevenFlg))
                             {
                                 // 手札にJOKERが1枚以上ある場合
                                 if (myHands.Count(x => x.IsJoker) >= 1)
@@ -1542,7 +1544,7 @@ namespace Assets.Services
                         if (isStairs)
                         {
                             // 革命の場合
-                            if (isRevolution)
+                            if ((isRevolution && !backElevenFlg) || (!isRevolution && backElevenFlg))
                             {
                                 // 手札にJOKERが1枚以上ある場合
                                 if (myHands.Count(x => x.IsJoker) >= 1)
@@ -1602,7 +1604,7 @@ namespace Assets.Services
                         else
                         {
                             // 革命の場合
-                            if (isRevolution)
+                            if ((isRevolution && !backElevenFlg) || (!isRevolution && backElevenFlg))
                             {
                                 // 手札にJOKERが1枚以上ある場合
                                 if (myHands.Count(x => x.IsJoker) >= 1)
